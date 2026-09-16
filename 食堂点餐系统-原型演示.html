@@ -760,7 +760,7 @@ function renderPhoneFrame(){
       <div class="h5-sim"><span>${timeStr}</span>
         <select onchange="setSimTime(this.value)">
           <option value="">实时</option>
-          ${[6,7,8,9,10,11,12,13,14,15,16,17,18,19,20].map(h=>`<option value="${h}" ${state.simHour==h?'selected':''}>${String(h).padStart(2,'0')}:00</option>`).join('')}
+          ${[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23].map(h=>`<option value="${h}" ${state.simHour==h?'selected':''}>${String(h).padStart(2,'0')}:00</option>`).join('')}
         </select>
       </div>
       <div class="role-switch" style="background:rgba(255,255,255,.15);border-radius:6px;padding:1px;display:flex">
@@ -1363,7 +1363,7 @@ function renderPCFrame(){
       <div class="pc-sim"><span>${timeStr}</span>
         <select onchange="setSimTime(this.value)">
           <option value="">实时</option>
-          ${[6,7,8,9,10,11,12,13,14,15,16,17,18,19,20].map(h=>`<option value="${h}" ${state.simHour==h?'selected':''}>${String(h).padStart(2,'0')}:00</option>`).join('')}
+          ${[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23].map(h=>`<option value="${h}" ${state.simHour==h?'selected':''}>${String(h).padStart(2,'0')}:00</option>`).join('')}
         </select>
       </div>
       <div class="role-switch">
