@@ -122,11 +122,12 @@
 
 <h3>1.3 用户角色与权限</h3>
 <table>
-  <tr><th style="width:15%">角色</th><th>权限范围</th><th style="width:15%">数据可见性</th></tr>
-  <tr><td>普通员工</td><td>点餐（增删改）、查询个人记录与统计</td><td>仅本人数据</td></tr>
-  <tr><td>食堂管理员</td><td>查看汇总、接单/关单、查询全员/部门/个人、结算打标、参数配置</td><td>全员数据</td></tr>
-  <tr><td>系统管理员</td><td>用户管理、部门管理、系统参数配置</td><td>全员数据</td></tr>
+  <tr><th style="width:15%">角色</th><th>权限范围</th><th style="width:15%">数据可见性</th><th style="width:16%">进入方式</th></tr>
+  <tr><td>普通员工</td><td>点餐（增删改）、查询个人记录与统计</td><td>仅本人数据</td><td>企微工作台，免登</td></tr>
+  <tr><td>食堂管理员</td><td>查看汇总、接单/关单、查询全员/部门/个人、结算打标、参数配置</td><td>全员数据</td><td>企微工作台，免登</td></tr>
+  <tr><td>系统管理员</td><td>用户管理、部门管理、系统参数配置</td><td>全员数据</td><td>企微工作台，免登</td></tr>
 </table>
+<p><strong>统一认证说明</strong>：全员通过企业微信进入系统。系统作为企微自建应用嵌入工作台，员工点击即打开H5页面，通过企微OAuth2自动完成登录鉴权（免账号密码），后端根据企微用户身份自动关联系统账号与角色。</p>
 
 <!-- 2. 系统架构 -->
 <h2 class="section-title" id="s2">2 系统架构</h2>
@@ -134,17 +135,22 @@
 <h3>2.1 技术架构</h3>
 <table>
   <tr><th style="width:20%">层级</th><th>技术选型</th><th>说明</th></tr>
-  <tr><td>前端</td><td>HTML + CSS + JavaScript（原生）</td><td>零外部 CDN 依赖，内网自包含部署</td></tr>
+  <tr><td>前端</td><td>HTML + CSS + JavaScript（原生）</td><td>零外部 CDN 依赖，内网自包含部署；嵌入企微 WebView 展示</td></tr>
   <tr><td>后端</td><td>Python Django</td><td>内网 Web 应用框架，快速开发</td></tr>
+  <tr><td>统一认证</td><td>企业微信 OAuth2 免登</td><td>嵌入企微工作台，打开即登录，免账号密码；后端换取企微用户身份并关联系统角色</td></tr>
+  <tr><td>消息通知</td><td>企微应用消息（免费）+ 短信（关键信息）</td><td>关单通知走企微实时推送 + 短信群发强触达；月度结算通知走短信；登录不消耗短信</td></tr>
   <tr><td>数据库</td><td>SQLite / MySQL</td><td>小规模用 SQLite，大规模可迁移 MySQL</td></tr>
-  <tr><td>定时任务</td><td>Django + Celery / 系统定时任务</td><td>截单自动锁定、状态自动核销</td></tr>
-  <tr><td>部署方式</td><td>内网部署</td><td>数据不出单位网络</td></tr>
+  <tr><td>定时任务</td><td>Django + Celery / 系统定时任务</td><td>截单自动锁定、自动接单、月度结算短信触发</td></tr>
+  <tr><td>部署方式</td><td>天翼云主机（2核8G/40G盘/2M带宽）</td><td>系统部署于天翼云，通过企微可信域名访问</td></tr>
 </table>
 
 <h3>2.2 功能架构图</h3>
 <div class="code-block">
 食堂点餐系统
-├── 员工端
+├── 统一认证层（企微OAuth2免登，员工/管理员点击即登录）
+├── 消息通知层（企微应用消息 + 短信：关单群发、月度结算）
+│
+├── 员工端（企微工作台进入）
 │   ├── 首页点餐（日历选日期 + 三餐卡片 + 倒计时 + 状态展示）
 │   ├── 一键批量点餐（本周/本月工作日，弹窗确认份数）
 │   ├── 我的记录（日期范围查询 + 统计汇总 + 穿透明细）
@@ -163,7 +169,7 @@
 <div class="module-card">
   <h3>3.1 首页点餐 <span class="tag tag-p0">P0</span></h3>
   <h4>页面描述</h4>
-  <p>员工登录后进入首页，顶部显示月历组件用于选择日期（含未来日期提前点餐），下方展示选中日期的三餐卡片。每张卡片包含：餐次名称、开餐时间、套餐价格、当前状态、操作按钮。</p>
+  <p>员工在企业微信工作台点击应用图标直接进入（企微OAuth2自动登录，无需输入账号密码），顶部显示月历组件用于选择日期（含未来日期提前点餐），下方展示选中日期的三餐卡片。每张卡片包含：餐次名称、开餐时间、套餐价格、当前状态、操作按钮。</p>
 
   <h4>日历组件</h4>
   <table class="field-table">
@@ -297,6 +303,13 @@
   <ul>
     <li><strong>接单</strong>：点击"接单"按钮，餐次状态变为"已接单"，员工端同步显示</li>
     <li><strong>关单</strong>：点击"关闭"按钮，弹出原因输入框（必填，支持预设模板如"点餐人数不足""食材供应问题""设备故障"等），提交后餐次状态变为"已关闭"，该餐次所有点餐记录作废，员工端展示关闭原因</li>
+    <li><strong>关单通知（关键信息）</strong>：关单提交后，系统自动向当天已点餐员工发送通知，双通道并行：
+      <ul>
+        <li><b>企微应用消息</b>：实时推送至员工企微（免费），内容含餐次、关闭原因，员工点餐记录页面同步可见</li>
+        <li><b>短信群发</b>：向当天已点餐员工手机号群发（约3次/月×30人），确保未在线企微的员工也能收到</li>
+      </ul>
+    </li>
+    <li><strong>月度结算通知（关键信息）</strong>：每月固定日（如1日）由定时任务触发，向全体员工发送上月餐费结算短信（点餐份数、合计费用、结算状态），100人×12月/年</li>
     <li><strong>自动接单</strong>：距开餐前 M 小时（可配置，默认 M=2）管理员仍未操作接单或关单时，系统自动将餐次状态设为"已接单"，管理员仍可在开餐前撤销改为关闭</li>
     <li><strong>时间约束</strong>：截单后方可执行接单/关单操作；截单前仅可查看，不可操作</li>
     <li><strong>撤销</strong>：管理员可在截单后、开餐前撤销关单操作（改为接单），开餐后不可修改</li>
@@ -557,6 +570,22 @@
 <!-- 7. 接口规范 -->
 <h2 class="section-title" id="s7">7 接口规范</h2>
 
+<h3>7.0 统一认证（企业微信免登）</h3>
+
+<div class="api-card">
+  <div class="api-head"><span class="api-method method-get">GET</span> /api/auth/wecom/callback/ — 企微OAuth2免登回调</div>
+  <div class="api-body">
+    <p>员工从企微工作台进入应用，企微携带授权码 code 回调本接口；后端通过企微API以 code 换取用户身份（userid），自动关联/创建系统账号并按角色返回界面，全程免账号密码。</p>
+    <table>
+      <tr><th style="width:20%">参数</th><th>类型</th><th>说明</th></tr>
+      <tr><td>code</td><td>string</td><td>企微OAuth2授权码（企微自动携带）</td></tr>
+      <tr><td>state</td><td>string</td><td>防CSRF随机串（企微自动携带）</td></tr>
+    </table>
+    <p><strong>响应</strong>：会话Token + 用户信息（姓名、部门、角色），前端据此渲染员工端或管理端</p>
+    <p><strong>前置配置</strong>：企微管理后台创建自建应用，配置可信域名、OAuth2回调地址、可见范围（全员）</p>
+  </div>
+</div>
+
 <h3>7.1 员工端接口</h3>
 
 <div class="api-card">
@@ -628,6 +657,31 @@
 </div>
 
 <h3>7.2 管理端接口</h3>
+
+<div class="api-card">
+  <div class="api-head"><span class="api-method method-post">POST</span> /api/admin/notify/close/ — 关单通知群发（企微+短信）</div>
+  <div class="api-body">
+    <table>
+      <tr><th style="width:20%">参数</th><th>类型</th><th>说明</th></tr>
+      <tr><td>session_id</td><td>int</td><td>被关闭的餐次会话</td></tr>
+      <tr><td>reason</td><td>string</td><td>关闭原因（通知内容一部分）</td></tr>
+      <tr><td>channel</td><td>string</td><td>wecom（企微应用消息）/ sms（短信）/ <b>both（默认，双通道并行）</b></td></tr>
+    </table>
+    <p><strong>行为</strong>：向当天该餐次已点餐员工发送关单通知；企微消息实时到达，短信确保强触达</p>
+  </div>
+</div>
+
+<div class="api-card">
+  <div class="api-head"><span class="api-method method-post">POST</span> /api/admin/notify/settle/ — 月度结算短信通知（定时触发）</div>
+  <div class="api-body">
+    <table>
+      <tr><th style="width:20%">参数</th><th>类型</th><th>说明</th></tr>
+      <tr><td>month</td><td>string</td><td>结算月份，如 2026-09</td></tr>
+      <tr><td>user_ids</td><td>array</td><td>可选；不传则全体员工</td></tr>
+    </table>
+    <p><strong>行为</strong>：每月固定日由定时任务触发，向员工发送上月餐费结算短信（份数、已结算/未结算费用）；亦可由管理员在结算打标完成后手动触发</p>
+  </div>
+</div>
 
 <div class="api-card">
   <div class="api-head"><span class="api-method method-get">GET</span> /api/admin/dashboard/ — 运营看板数据</div>
@@ -758,7 +812,7 @@
   <tr><th style="width:20%">维度</th><th>要求</th><th style="width:10%">优先级</th></tr>
   <tr><td>性能</td><td>页面加载 ≤ 2s；接口响应 ≤ 500ms；支持 500 并发用户</td><td><span class="tag tag-p0">P0</span></td></tr>
   <tr><td>可用性</td><td>系统可用率 ≥ 99.5%（工作时间 06:00-20:00）</td><td><span class="tag tag-p0">P0</span></td></tr>
-  <tr><td>安全</td><td>用户鉴权；数据权限隔离；防越权访问；操作日志留存</td><td><span class="tag tag-p0">P0</span></td></tr>
+  <tr><td>安全</td><td>企微统一认证（OAuth2免登，免密码防泄漏）；数据权限隔离；防越权访问；操作日志留存</td><td><span class="tag tag-p0">P0</span></td></tr>
   <tr><td>兼容</td><td>Chrome 90+ / Edge 90+ / Safari 14+ / 移动端浏览器</td><td><span class="tag tag-p1">P1</span></td></tr>
   <tr><td>部署</td><td>内网部署，零外部依赖；支持 Docker 或裸机部署</td><td><span class="tag tag-p0">P0</span></td></tr>
   <tr><td>数据备份</td><td>每日自动备份；支持按日期恢复</td><td><span class="tag tag-p1">P1</span></td></tr>
@@ -768,9 +822,9 @@
 <h2 class="section-title" id="s10">10 迭代规划</h2>
 <table>
   <tr><th style="width:15%">版本</th><th style="width:15%">周期</th><th>范围</th></tr>
-  <tr><td>V1.0（MVP）</td><td>3 周</td><td>员工点餐（三餐卡片+截单锁定）、管理员看板（汇总+接单/关单）、个人查询统计、结算打标、系统配置</td></tr>
+  <tr><td>V1.0（MVP）</td><td>4 周</td><td>企微免登接入、员工点餐（日历+一键批量+截单锁定）、管理员看板（接单/关单+关单通知）、个人查询统计、结算打标+月度结算短信、系统配置</td></tr>
   <tr><td>V1.1</td><td>2 周</td><td>统计数字穿透明细、部门维度查询、批量结算打标、关单原因模板管理</td></tr>
-  <tr><td>V2.0（规划）</td><td>-</td><td>多套餐选择、菜品详情展示、周/月报表导出、消息通知（企微/钉钉）、消费额度限制</td></tr>
+  <tr><td>V2.0（规划）</td><td>-</td><td>多套餐选择、菜品详情展示、周/月报表导出、更多通知场景（点餐提醒/结算确认企微卡片消息）、消费额度限制</td></tr>
 </table>
 
 <div class="footer">

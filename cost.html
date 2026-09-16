@@ -83,11 +83,11 @@ tr:hover td{background:#fafafa}
 <!-- 头部 -->
 <div class="header">
   <h1>食堂点餐系统 · 项目成本测算表</h1>
-  <div class="sub">按100人规模、天翼云部署方案测算</div>
+  <div class="sub">按100人规模、天翼云 + 企业微信部署方案测算</div>
   <div class="meta">
     <span>测算规模：<b>100人</b></span>
     <span>部署环境：<b>天翼云（公网/内网均可）</b></span>
-    <span>技术栈：<b>Django + H5 + SQLite</b></span>
+    <span>技术栈：<b>Django + H5 + SQLite + 企微免登</b></span>
     <span>编制日期：<b>2026年9月16日</b></span>
   </div>
 </div>
@@ -96,18 +96,18 @@ tr:hover td{background:#fafafa}
 <div class="summary-grid">
   <div class="sum-card">
     <div class="label">软件开发（一次性）</div>
-    <div class="value">5.0<span class="unit"> 万元</span></div>
-    <div class="note">自研方案 · 约50人天；外包约10万</div>
+    <div class="value">3.0<span class="unit"> 万元</span></div>
+    <div class="note">自研方案 · 约30人天（含企微对接）；外包约6万</div>
   </div>
   <div class="sum-card">
     <div class="label">首年总投入</div>
-    <div class="value">5.3<span class="unit"> 万元</span></div>
+    <div class="value">3.3<span class="unit"> 万元</span></div>
     <div class="note">开发费 + 云主机 + 短信（自研）</div>
   </div>
   <div class="sum-card">
     <div class="label">次年起年运营</div>
-    <div class="value">1.05<span class="unit"> 万元/年</span></div>
-    <div class="note">云主机3,000 + 短信50 + 维保7,500</div>
+    <div class="value">0.78<span class="unit"> 万元/年</span></div>
+    <div class="note">云主机3,000 + 短信150 + 备份等115 + 维保4,500</div>
   </div>
 </div>
 
@@ -132,19 +132,19 @@ tr:hover td{background:#fafafa}
   <div class="desc">按本系统实际功能范围（员工端H5 + 管理端 + 后端）评估工作量</div>
   <table>
     <tr><th style="width:26%">开发内容</th><th>主要交付物</th><th style="width:10%">人天</th><th style="width:16%">自研成本</th><th style="width:16%">外包报价</th></tr>
-    <tr><td>需求分析与设计</td><td>URD/PRD/原型、数据库设计</td><td>5</td><td class="money">5,000</td><td class="money">10,000</td></tr>
-    <tr><td>UI设计</td><td>员工端H5 + 管理端两套界面</td><td>4</td><td class="money">4,000</td><td class="money">8,000</td></tr>
-    <tr><td>后端开发</td><td>Django框架、7张数据表、12+个API、定时任务（截单/自动接单）、短信对接</td><td>15</td><td class="money">15,000</td><td class="money">30,000</td></tr>
-    <tr><td>员工端H5开发</td><td>日历点餐、份数选择、一键批量点餐（含日期勾选）、我的记录查询筛选</td><td>8</td><td class="money">8,000</td><td class="money">16,000</td></tr>
-    <tr><td>管理端开发</td><td>运营看板、接单/关单、查询统计（穿透+打标）、系统配置、员工账号、工作日历（PC+H5响应式）</td><td>12</td><td class="money">12,000</td><td class="money">24,000</td></tr>
-    <tr><td>联调测试</td><td>功能测试、移动端兼容测试、定时任务验证</td><td>5</td><td class="money">5,000</td><td class="money">10,000</td></tr>
-    <tr><td>部署上线与文档</td><td>云主机部署、操作手册、管理员培训</td><td>3</td><td class="money">3,000</td><td class="money">6,000</td></tr>
-    <tr class="total-row"><td>合计</td><td>自研按内部人力1,000元/人天；外包按市场价2,000元/人天</td><td>52</td><td class="money">52,000</td><td class="money">104,000</td></tr>
+    <tr><td>需求分析与设计</td><td>URD/PRD/原型、数据库设计</td><td>4</td><td class="money">4,000</td><td class="money">8,000</td></tr>
+    <tr><td>UI设计</td><td>员工端H5 + 管理端两套界面</td><td>3</td><td class="money">3,000</td><td class="money">6,000</td></tr>
+    <tr><td>后端开发</td><td>Django框架、7张数据表、12+个API、定时任务（截单/自动接单）、<b>企微OAuth2免登对接</b>、企微消息推送+短信对接</td><td>9</td><td class="money">9,000</td><td class="money">18,000</td></tr>
+    <tr><td>员工端H5开发</td><td>日历点餐、份数选择、一键批量点餐（含日期勾选）、我的记录查询筛选（嵌企微WebView适配）</td><td>5</td><td class="money">5,000</td><td class="money">10,000</td></tr>
+    <tr><td>管理端开发</td><td>运营看板、接单/关单（含通知群发）、查询统计（穿透+打标）、系统配置、员工账号、工作日历（PC+H5响应式）</td><td>6</td><td class="money">6,000</td><td class="money">12,000</td></tr>
+    <tr><td>联调测试</td><td>功能测试、企微免登与消息推送验证、移动端兼容测试、定时任务验证</td><td>2</td><td class="money">2,000</td><td class="money">4,000</td></tr>
+    <tr><td>部署上线与文档</td><td>云主机部署、企微管理后台应用配置、操作手册、管理员培训</td><td>1</td><td class="money">1,000</td><td class="money">2,000</td></tr>
+    <tr class="total-row"><td>合计</td><td>自研按内部人力1,000元/人天；外包按市场价2,000元/人天</td><td>30</td><td class="money">30,000</td><td class="money">60,000</td></tr>
   </table>
   <div class="notes" style="margin-top:12px">
     <ul>
-      <li><b>推荐自研</b>：按52人天取整为50人天测算，合计<b>5万元</b>（内部人力成本口径）；外包市场报价约<b>10万元</b>。</li>
-      <li>自研方案同时沉淀团队H5小程序开发能力，可复用于同类内部小系统。</li>
+      <li><b>推荐自研</b>：按30人天测算，合计<b>3万元</b>（内部人力成本口径）；外包市场报价约<b>6万元</b>。企微免登与应用消息对接已含在后端开发人天内。</li>
+      <li>自研方案同时沉淀<b>企微自建应用开发能力</b>（OAuth2免登 + 消息推送可复用于其他内部系统）。</li>
     </ul>
   </div>
 </div>
@@ -152,7 +152,7 @@ tr:hover td{background:#fafafa}
 <!-- 三、年度运营费用 -->
 <div class="section">
   <h2><span class="num">3</span>年度运营费用（每年）</h2>
-  <div class="desc">含云主机、短信验证码及可选项目</div>
+    <div class="desc">含云主机、短信通知及可选项目（短信仅用于关键信息，登录免短信）</div>
 
   <table>
     <tr><th style="width:22%">费用项</th><th>规格/测算依据</th><th style="width:14%">单价依据</th><th style="width:16%">年费用</th></tr>
@@ -163,10 +163,10 @@ tr:hover td{background:#fafafa}
       <td class="money">约3,000</td>
     </tr>
     <tr>
-      <td>短信验证码 <span class="tag tag-rec">必选</span></td>
-      <td>见下方场景测算（推荐低频方案）</td>
+      <td>短信通知 <span class="tag tag-rec">必选</span></td>
+      <td>仅用于关键信息（登录已改企微免登，不消耗短信）：① 管理员关闭点餐时群发通知；② 每月费用结算通知。见下方测算</td>
       <td>0.05元/条</td>
-      <td class="money">50~1,320</td>
+      <td class="money">约150</td>
     </tr>
     <tr>
       <td>数据备份 <span class="tag tag-opt">可选</span></td>
@@ -182,22 +182,22 @@ tr:hover td{background:#fafafa}
     </tr>
     <tr>
       <td>系统维保 <span class="tag tag-opt">次年起</span></td>
-      <td>按开发费15%/年计（缺陷修复、小需求调整、年度节假日历更新），首年免费含在开发费中</td>
-      <td>5万 × 15%</td>
-      <td class="money">7,500</td>
+      <td>按开发费15%/年计（缺陷修复、小需求调整、年度节假日历更新、企微接口适配），首年免费含在开发费中</td>
+      <td>3万 × 15%</td>
+      <td class="money">4,500</td>
     </tr>
   </table>
 
   <div class="scene-grid">
     <div class="scene rec">
-      <h4>场景A（推荐）：登录免短信</h4>
-      <div class="price">约50<small> 元/年</small></div>
-      <p>工号+密码登录，短信仅用于<b>首次注册验证</b>（100条）+ <b>密码找回</b>（约200条/年）≈ 300条 × 0.05元 = <b>15元/年</b>，预留3倍余量按50元计。</p>
+      <h4>本测算方案：关键信息短信通知</h4>
+      <div class="price">约150<small> 元/年</small></div>
+      <p>① <b>关单群发</b>：约3次/月 × 平均30人/次 × 12月 = 1,080条；② <b>月度结算通知</b>：100人 × 12月 = 1,200条；③ 杂项预留200条。合计约2,480条 × 0.05元 ≈ 124元，按<b>150元</b>预留余量。</p>
     </div>
     <div class="scene">
-      <h4>场景B（不推荐）：每次登录短信验证</h4>
-      <div class="price">约1,320<small> 元/年</small></div>
-      <p>100人 × 22工作日 × 12月 = 26,400条 × 0.05元 = 1,320元/年。内部系统无此必要，且员工体验差（每天收短信）。</p>
+      <h4>优化空间：逐步迁移企微应用消息（免费）</h4>
+      <div class="price">趋近 0<small> 元/年</small></div>
+      <p>关单通知同步通过<b>企微应用消息</b>实时推送（免费渠道），员工已在企微内可即时看到；后续日常通知逐步以企微为主，短信仅保留结算等强触达场景，费用可进一步压缩。</p>
     </div>
   </div>
   <div class="notes">
@@ -205,6 +205,7 @@ tr:hover td{background:#fafafa}
       <li>天翼云实际价格随<b>地域、促销活动、会员折扣</b>浮动较大（新购常有3折起活动），表中按标准包年价约3,000元/年测算，<b>电信内部建议走资源申请流程，实际成本更低</b>，最终以天翼云报价为准。</li>
       <li>40G系统盘对100人规模绰绰有余（应用+数据库+日志合计不足2G）。</li>
       <li>若后续加载菜品图片较多或体验要求高，可将带宽升级至5M（年费增加约500-900元）。</li>
+      <li><b>企微部署要点</b>：需在企业微信管理后台创建自建应用，配置可信域名与OAuth2回调地址；员工无需安装额外APP，工作台点击即用，免登体验零门槛。</li>
     </ul>
   </div>
 </div>
@@ -216,13 +217,13 @@ tr:hover td{background:#fafafa}
   <div class="table-scroll">
   <table>
     <tr><th style="width:24%">费用项</th><th>一次性</th><th>首年</th><th>次年起（每年）</th></tr>
-    <tr><td>软件开发（自研）</td><td class="money">50,000</td><td class="money">50,000</td><td class="money">—</td></tr>
+    <tr><td>软件开发（自研，含企微对接）</td><td class="money">30,000</td><td class="money">30,000</td><td class="money">—</td></tr>
     <tr><td>天翼云主机（2核8G/40G盘/2M带宽）</td><td class="money">—</td><td class="money">3,000</td><td class="money">3,000</td></tr>
-    <tr><td>短信验证码（场景A）</td><td class="money">—</td><td class="money">50</td><td class="money">50</td></tr>
+    <tr><td>短信通知（关单群发+月度结算）</td><td class="money">—</td><td class="money">150</td><td class="money">150</td></tr>
     <tr><td>数据备份+域名（可选）</td><td class="money">—</td><td class="money">115</td><td class="money">115</td></tr>
-    <tr><td>系统维保（15%/年）</td><td class="money">—</td><td class="money">0（含在开发费）</td><td class="money">7,500</td></tr>
-    <tr class="total-row"><td>合计（自研方案）</td><td class="money">50,000</td><td class="money">53,165 ≈ 5.3万</td><td class="money">10,665 ≈ 1.07万/年</td></tr>
-    <tr><td>合计（外包对比）</td><td class="money">100,000</td><td class="money">103,165 ≈ 10.3万</td><td class="money">22,500+3,165 ≈ 2.57万/年</td></tr>
+    <tr><td>系统维保（15%/年）</td><td class="money">—</td><td class="money">0（含在开发费）</td><td class="money">4,500</td></tr>
+    <tr class="total-row"><td>合计（自研方案）</td><td class="money">30,000</td><td class="money">33,265 ≈ 3.3万</td><td class="money">7,765 ≈ 0.78万/年</td></tr>
+    <tr><td>合计（外包对比）</td><td class="money">60,000</td><td class="money">63,265 ≈ 6.3万</td><td class="money">12,265 ≈ 1.23万/年</td></tr>
   </table>
   </div>
 </div>
@@ -234,8 +235,8 @@ tr:hover td{background:#fafafa}
     <ul>
       <li><b>价格时效</b>：云主机、短信单价均以2026年9月公开行情为基准，实际采购以正式报价为准；表中已按"标准价+合理余量"原则从紧测算。</li>
       <li><b>规模弹性</b>：本测算覆盖100人。因数据库轻量（SQLite）且并发极低，扩展至300人<b>无需增加任何硬件成本</b>；超过500人建议升级4核8G+MySQL（年费增加约1,500元）。</li>
-      <li><b>效益对比</b>：系统上线后按预估减少食材浪费50%测算，若食堂月均食材成本5万元，年节约约30万元，<b>首年投入约2个月即可回本</b>。</li>
-      <li><b>实施建议</b>：可先部署至天翼云测试环境试用2周（云主机按量计费约100元），验证满意后转包年，进一步降低决策成本。</li>
+      <li><b>效益对比</b>：系统上线后按预估减少食材浪费50%测算，若食堂月均食材成本5万元，年节约约30万元，<b>首年投入约1个多月即可回本</b>。</li>
+      <li><b>实施建议</b>：可先部署至天翼云测试环境试用2周（云主机按量计费约100元），验证满意后转包年，进一步降低决策成本；企微免登需提前向客户申请自建应用配置权限。</li>
     </ul>
   </div>
 </div>
