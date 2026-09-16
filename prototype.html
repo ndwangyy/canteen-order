@@ -373,9 +373,9 @@ const USERS = [
   {id:9, name:'管理员', deptId:4, role:'admin'},
 ];
 const MEAL_TYPES = [
-  {type:'breakfast', name:'早餐', icon:'☀️', defaultTime:'08:00', defaultPrice:10},
-  {type:'lunch', name:'中餐', icon:'🍜', defaultTime:'12:00', defaultPrice:20},
-  {type:'dinner', name:'晚餐', icon:'🍲', defaultTime:'18:00', defaultPrice:15},
+  {type:'breakfast', name:'早餐', icon:'☀️', defaultTime:'08:00', defaultPrice:5},
+  {type:'lunch', name:'中餐', icon:'🍜', defaultTime:'12:00', defaultPrice:12},
+  {type:'dinner', name:'晚餐', icon:'🍲', defaultTime:'18:00', defaultPrice:8},
 ];
 const CLOSE_REASONS = ['点餐人数不足','食材供应问题','设备故障','临时停水停电'];
 
@@ -445,9 +445,9 @@ let state = {
   calMonth: null, // {year, month} for calendar display; null = current month
   adminDashboardDate: null, // null = smart default (auto-switch to next day after dinner+2h)
   config: {
-    breakfast: {time:'08:00', price:10},
-    lunch: {time:'12:00', price:20},
-    dinner: {time:'18:00', price:15},
+    breakfast: {time:'08:00', price:5},
+    lunch: {time:'12:00', price:12},
+    dinner: {time:'18:00', price:8},
     cutoffHours: 3,
     autoAcceptHours: 2,
     closeReasons: [...CLOSE_REASONS],
