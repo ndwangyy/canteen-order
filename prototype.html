@@ -837,7 +837,7 @@ function renderEmpHome(){
     const mealPassed = isMealTimePassed(mt.type, selDate); // 开餐时间已过
     const pastOrdered = myOrder && (isPast || (status === 'accepted' && mealPassed)); // 过去日期或当日过餐，且有订餐
     const todayPassedNoOrder = !myOrder && !isPast && mealPassed; // 当日已过就餐时间且未订餐
-    const statusText = isWknd ? (getDayType(selDate) === 'holiday' && getHolidayName(selDate) ? getHolidayName(selDate)+'·不开放' : '食堂不开放') : pastOrdered ? '已供餐 ×'+myOrder.quantity+'份 ¥'+myOrder.fee+'元' : (isPast || todayPassedNoOrder) ? '未订餐' : {open:'可点餐',locked:'已截单',accepted:'已接单',closed:'已关闭'}[status];
+    const statusText = isWknd ? (getDayType(selDate) === 'holiday' && getHolidayName(selDate) ? getHolidayName(selDate)+'·不开放' : '食堂不开放') : pastOrdered ? '已供餐 ×'+myOrder.quantity+'份 ¥'+myOrder.fee+'元' : (isPast || todayPassedNoOrder) ? '未订餐' : myOrder && status === 'open' ? '已点餐' : {open:'可点餐',locked:'已截单',accepted:'已接单',closed:'已关闭'}[status];
     const statusClass = pastOrdered ? 'st-accepted' : (isPast || todayPassedNoOrder) ? 'st-locked' : {open:'st-open',locked:'st-locked',accepted:'st-accepted',closed:'st-closed'}[status];
 
     html += `<div class="h5-meal ${myOrder?'ordered':''} ${isClosed?'closed':''}">`;
@@ -852,7 +852,7 @@ function renderEmpHome(){
       html += `<div class="h5-meal-reason">关闭原因：${session.closeReason}</div>`;
     }
     if(canOrder && !isPast){
-      const curQty = 1;
+      const curQty = myOrder ? myOrder.quantity : 1;
       html += `<div class="qty-row">`;
       html += `<span class="qty-label">份数</span>`;
       html += `<div class="qty-stepper">`;
@@ -896,6 +896,7 @@ function renderEmpHome(){
       const sBadge = ds==='cancelled' ? '<span class="badge badge-cancelled">已取消</span>' :
         (isPast || (getSessionStatus(o.mealType, o.mealDate)==='accepted' && oMealPassed)) ? '<span class="badge badge-accepted">已供餐</span>' :
         getSessionStatus(o.mealType, o.mealDate)==='accepted' ? '<span class="badge badge-accepted">已接单</span>' :
+        getSessionStatus(o.mealType, o.mealDate)==='open' ? '<span class="badge badge-open">已点餐</span>' :
         '<span class="badge badge-locked">已截单</span>';
       const settBadge = ds==='cancelled' ? '-' :
         o.settled ? '<span class="badge badge-settled">已结算</span>' : '<span class="badge badge-unsettled">未结算</span>';
