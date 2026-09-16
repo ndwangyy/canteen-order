@@ -49,6 +49,7 @@ tr:hover td{background:#fafafa}
 .tag{display:inline-block;padding:1px 8px;border-radius:4px;font-size:11px;font-weight:500}
 .tag-rec{background:var(--red-light);color:var(--red)}
 .tag-opt{background:var(--bg);color:var(--text2)}
+.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
 
 /* 说明列表 */
 .notes{font-size:12px;color:var(--text2);line-height:1.9}
@@ -66,12 +67,17 @@ tr:hover td{background:#fafafa}
 
 /* 移动端适配 */
 @media(max-width:768px){
+  body{font-size:13px}
   .summary-grid{grid-template-columns:1fr}
-  .section{padding:16px}
+  .section{padding:16px 14px}
   .header{padding:24px 18px}
-  .table-scroll{overflow-x:auto}
-  table{min-width:600px}
+  .header .meta{gap:12px 18px}
+  .sum-card{padding:16px}
+  .sum-card .value{font-size:24px}
   .scene-grid{grid-template-columns:1fr}
+  table{font-size:12px}
+  th,td{padding:8px 10px}
+  .table-scroll table{min-width:600px}
 }
 </style>
 </head>
@@ -129,6 +135,7 @@ tr:hover td{background:#fafafa}
 <div class="section">
   <h2><span class="num">2</span>软件开发费用（一次性）</h2>
   <div class="desc">按本系统实际功能范围（员工端H5 + 管理端 + 后端 + 企微对接）评估工作量</div>
+  <div class="table-scroll">
   <table>
     <tr><th style="width:26%">开发内容</th><th>主要交付物</th><th style="width:10%">人天</th><th style="width:16%">费用</th></tr>
     <tr><td>需求分析与设计</td><td>URD/PRD/原型、数据库设计</td><td>5</td><td class="money">5,000</td></tr>
@@ -140,6 +147,7 @@ tr:hover td{background:#fafafa}
     <tr><td>部署上线与文档</td><td>云主机部署、企微管理后台应用配置、操作手册、管理员培训</td><td>3</td><td class="money">3,000</td></tr>
     <tr class="total-row"><td>合计</td><td>按内部人力成本1,000元/人天</td><td>50</td><td class="money">50,000</td></tr>
   </table>
+  </div>
   <div class="notes" style="margin-top:12px">
     <ul>
       <li><b>报价5万元</b>：按50人天测算（内部人力成本口径），企微免登与应用消息对接已含在后端开发人天内。</li>
@@ -153,6 +161,7 @@ tr:hover td{background:#fafafa}
   <h2><span class="num">3</span>年度运营费用（每年）</h2>
   <div class="desc">含云主机、短信通知及可选项目（登录已改企微免登，不消耗短信）</div>
 
+  <div class="table-scroll">
   <table>
     <tr><th style="width:22%">费用项</th><th>规格/测算依据</th><th style="width:14%">单价依据</th><th style="width:16%">年费用</th></tr>
     <tr>
@@ -186,6 +195,7 @@ tr:hover td{background:#fafafa}
       <td class="money">5,000<br><span style="color:var(--red);font-size:12px">战略客户 2,500</span></td>
     </tr>
   </table>
+  </div>
 
   <div class="scene-grid">
     <div class="scene rec">
