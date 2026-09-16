@@ -914,22 +914,30 @@ function renderEmpHome(){
       html += `<div class="h5-meal-reason">关闭原因：${session.closeReason}</div>`;
     }
     if(canOrder && !isPast && !isBeyondLimit){
-      const curQty = myOrder ? myOrder.quantity : 1;
-      html += `<div class="qty-row">`;
-      html += `<span class="qty-label">份数</span>`;
-      html += `<div class="qty-stepper">`;
-      html += `<div class="qty-btn" onclick="adjustQty('${mt.type}',-1)">−</div>`;
-      html += `<span class="qty-val" id="qty-${mt.type}">${curQty}</span>`;
-      html += `<div class="qty-btn" onclick="adjustQty('${mt.type}',1)">+</div>`;
-      html += `<span class="qty-fee" id="qtyfee-${mt.type}">¥${(price*curQty).toFixed(0)}</span>`;
-      html += `</div></div>`;
-      html += `<div class="h5-actions">`;
       if(myOrder){
+        html += `<div class="qty-row">`;
+        html += `<span class="qty-label">已点份数</span>`;
+        html += `<div class="qty-stepper">`;
+        html += `<span class="qty-val" id="qty-${mt.type}">${myOrder.quantity}</span>`;
+        html += `<span class="qty-fee">¥${myOrder.fee.toFixed(0)}</span>`;
+        html += `</div></div>`;
+        html += `<div class="h5-actions">`;
         html += `<button class="h5-btn h5-btn-danger" onclick="cancelOrder(${myOrder.id})">取消点餐</button>`;
+        html += `</div>`;
       } else {
+        const curQty = 1;
+        html += `<div class="qty-row">`;
+        html += `<span class="qty-label">份数</span>`;
+        html += `<div class="qty-stepper">`;
+        html += `<div class="qty-btn" onclick="adjustQty('${mt.type}',-1)">−</div>`;
+        html += `<span class="qty-val" id="qty-${mt.type}">${curQty}</span>`;
+        html += `<div class="qty-btn" onclick="adjustQty('${mt.type}',1)">+</div>`;
+        html += `<span class="qty-fee" id="qtyfee-${mt.type}">¥${(price*curQty).toFixed(0)}</span>`;
+        html += `</div></div>`;
+        html += `<div class="h5-actions">`;
         html += `<button class="h5-btn h5-btn-primary" onclick="placeOrder('${mt.type}')">立即点餐</button>`;
+        html += `</div>`;
       }
-      html += `</div>`;
     } else if(isBeyondLimit){
       html += `<div class="h5-actions"><button class="h5-btn h5-btn-outline" disabled>超出提前点餐上限</button></div>`;
     } else if(isWknd){
@@ -1634,16 +1642,11 @@ function renderAdminDashboard(){
         html += `<div style="font-size:12px;color:var(--text2);margin-top:4px">${Math.floor(autoAcceptRemain/60)}时${autoAcceptRemain%60}分后未操作将自动接单</div>`;
       }
     } else if(status === 'open'){
-      const isFuture = dashDate > todayStr;
-      if(isFuture){
-        html += `<div style="font-size:13px;color:var(--text2);margin-top:8px">尚未截单（截单时间 ${getCutoffTime(mt.type)}）</div>`;
-        html += `<div style="display:flex;gap:8px;margin-top:8px">`;
-        html += `<button class="btn btn-success btn-sm" onclick="acceptMeal('${mt.type}')">提前接单</button>`;
-        html += `<button class="btn btn-danger btn-sm" onclick="closeMealPrompt('${mt.type}')">关闭（需填原因）</button>`;
-        html += `</div>`;
-      } else {
-        html += `<div style="font-size:13px;color:var(--text2);margin-top:8px">尚未截单，截单后可进行接单/关闭操作（截单时间 ${getCutoffTime(mt.type)}）</div>`;
-      }
+      html += `<div style="font-size:13px;color:var(--text2);margin-top:8px">尚未截单（截单时间 ${getCutoffTime(mt.type)}），可提前接单或关闭</div>`;
+      html += `<div style="display:flex;gap:8px;margin-top:8px">`;
+      html += `<button class="btn btn-success btn-sm" onclick="acceptMeal('${mt.type}')">提前接单</button>`;
+      html += `<button class="btn btn-danger btn-sm" onclick="closeMealPrompt('${mt.type}')">关闭（需填原因）</button>`;
+      html += `</div>`;
     }
     html += `</div>`;
   });
