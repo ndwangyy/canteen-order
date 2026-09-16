@@ -798,7 +798,7 @@ function renderPhoneFrame(){
  * ============================================================ */
 function renderEmpHome(){
   const selDate = getSelectedDate();
-  const myOrders = state.orders.filter(o => o.userId === state.currentUserId && o.mealDate === selDate);
+  const myOrders = state.orders.filter(o => o.userId === state.currentUserId && o.mealDate === selDate && o.status === 'active');
   const isPast = selDate < formatDate(new Date());
   const isTodayDate = isToday(selDate);
   const isWknd = isNonWorkday(selDate);
@@ -2019,7 +2019,7 @@ function placeOrder(mealType){
   const qtyEl = document.getElementById('qty-'+mealType);
   const quantity = qtyEl ? parseInt(qtyEl.textContent) : 1;
   const user = USERS.find(u=>u.id===state.currentUserId);
-  const existing = state.orders.find(o => o.userId===state.currentUserId && o.mealDate===selDate && o.mealType===mealType);
+  const existing = state.orders.find(o => o.userId===state.currentUserId && o.mealDate===selDate && o.mealType===mealType && o.status==='active');
   if(existing){
     existing.price = price;
     existing.quantity = quantity;
