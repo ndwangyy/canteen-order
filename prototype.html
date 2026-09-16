@@ -1051,15 +1051,26 @@ function openBatchOrder(range){
   html += `</div></div>`;
 
   // Date detail list
-  html += `<div style="font-size:14px;font-weight:600;margin-bottom:8px">日期明细</div>`;
-  html += `<div style="max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;margin-bottom:14px">`;
+  html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">`;
+  html += `<span style="font-size:14px;font-weight:600">日期明细（勾选要点餐的日期）</span>`;
+  html += `<div style="display:flex;gap:8px">`;
+  html += `<span style="font-size:12px;color:var(--primary);cursor:pointer" onclick="batchToggleAll(true)">全选</span>`;
+  html += `<span style="font-size:12px;color:var(--text2);cursor:pointer" onclick="batchToggleAll(false)">全不选</span>`;
+  html += `</div></div>`;
+  html += `<div style="max-height:240px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;margin-bottom:14px">`;
   dateDetails.forEach(d => {
     const dow = ['日','一','二','三','四','五','六'][new Date(d.dateStr).getDay()];
     const hName = getHolidayName(d.dateStr);
     const label = d.isPast ? '(已过)' : d.canOrder ? '' : '(已截单/已关闭)';
     const color = d.isPast ? 'var(--text3)' : d.canOrder ? 'var(--text)' : 'var(--orange)';
     const myMeals = d.meals.filter(m => m.hasOrder).map(m => m.mealName+'×'+m.orderQty).join(' ');
-    html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid #f0f0f0">`;
+    html += `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid #f0f0f0">`;
+    // Checkbox
+    if(d.canOrder){
+      html += `<input type="checkbox" class="batch-date-cb" data-date="${d.dateStr}" checked style="width:18px;height:18px;cursor:pointer;flex-shrink:0" onchange="batchUpdateSummary()">`;
+    } else {
+      html += `<input type="checkbox" disabled style="width:18px;height:18px;flex-shrink:0;opacity:.3">`;
+    }
     html += `<div style="flex:1"><span style="font-size:13px;color:${color}">${d.dateStr} 周${dow}${hName?' '+hName:''} <span style="font-size:11px;color:var(--text3)">${label}</span></span>`;
     if(myMeals) html += `<div style="font-size:11px;color:var(--primary);margin-top:2px">已点：${myMeals}</div>`;
     html += `</div>`;
@@ -1091,7 +1102,7 @@ function openBatchOrder(range){
 
   // Summary
   html += `<div class="batch-summary">`;
-  html += `<div class="batch-summary-label">预计合计（${orderableDates.length}天 × 各餐份数）</div>`;
+  html += `<div class="batch-summary-label" id="batchSummaryLabel">预计合计（已选 ${orderableDates.length} 天 × 各餐份数）</div>`;
   html += `<div class="batch-summary-val" id="batchTotal">¥${calcBatchTotal(defaultQty, orderableDates.length).toFixed(0)}</div>`;
   html += `</div>`;
 
@@ -1100,11 +1111,47 @@ function openBatchOrder(range){
   // Footer
   html += `<div class="modal-foot">`;
   html += `<button class="btn btn-outline" onclick="closeModal()">取消</button>`;
-  html += `<button class="btn btn-primary" onclick="confirmBatchOrder('${range}')" ${orderableDates.length===0?'disabled':''}>确认点餐</button>`;
+  html += `<button class="btn btn-primary" id="batchConfirmBtn" onclick="confirmBatchOrder('${range}')" ${orderableDates.length===0?'disabled':''}>确认点餐</button>`;
   html += `</div>`;
 
   document.getElementById('modal').innerHTML = html;
   document.getElementById('modalOverlay').classList.add('show');
+}
+
+function batchToggleAll(checked){
+  document.querySelectorAll('.batch-date-cb').forEach(cb => { cb.checked = checked; });
+  batchUpdateSummary();
+}
+
+function getSelectedBatchDates(){
+  const cbs = document.querySelectorAll('.batch-date-cb:checked');
+  return Array.from(cbs).map(cb => cb.getAttribute('data-date'));
+}
+
+function batchUpdateSummary(){
+  const selectedDates = getSelectedBatchDates();
+  const qtys = {};
+  MEAL_TYPES.forEach(mt => {
+    const e = document.getElementById('bq-'+mt.type);
+    qtys[mt.type] = e ? parseInt(e.textContent) : 0;
+  });
+  // Calculate total based on selected dates only
+  let total = 0;
+  selectedDates.forEach(dateStr => {
+    MEAL_TYPES.forEach(mt => {
+      const status = getSessionStatus(mt.type, dateStr);
+      if(status === 'open'){
+        total += qtys[mt.type] * state.config[mt.type].price;
+      }
+    });
+  });
+  const totalEl = document.getElementById('batchTotal');
+  if(totalEl) totalEl.textContent = '¥' + total.toFixed(0);
+  const labelEl = document.getElementById('batchSummaryLabel');
+  if(labelEl) labelEl.textContent = `预计合计（已选 ${selectedDates.length} 天 × 各餐份数）`;
+  // Enable/disable confirm button
+  const confirmBtn = document.getElementById('batchConfirmBtn');
+  if(confirmBtn) confirmBtn.disabled = selectedDates.length === 0;
 }
 
 function adjustBatchQty(mealType, delta){
@@ -1114,23 +1161,7 @@ function adjustBatchQty(mealType, delta){
   if(qty < 0) qty = 0;
   if(qty > 10) qty = 10;
   el.textContent = qty;
-  // Update total - only count orderable dates
-  const dates = getWorkdays(state._batchRange || 'week');
-  const todayStr = formatDate(new Date());
-  const orderableCount = dates.filter(d => d >= todayStr && getSessionStatus(mealType, d) === 'open').length;
-  const qtys = {};
-  MEAL_TYPES.forEach(mt => {
-    const e = document.getElementById('bq-'+mt.type);
-    qtys[mt.type] = e ? parseInt(e.textContent) : 0;
-  });
-  // Recalculate properly per meal type
-  let total = 0;
-  MEAL_TYPES.forEach(mt => {
-    const orderable = dates.filter(d => d >= todayStr && getSessionStatus(mt.type, d) === 'open').length;
-    total += qtys[mt.type] * state.config[mt.type].price * orderable;
-  });
-  const totalEl = document.getElementById('batchTotal');
-  if(totalEl) totalEl.textContent = '¥' + total.toFixed(0);
+  batchUpdateSummary();
 }
 
 function calcBatchTotal(qtys, dayCount){
@@ -1143,7 +1174,7 @@ function calcBatchTotal(qtys, dayCount){
 
 function confirmBatchOrder(range){
   state._batchRange = range;
-  const dates = getWorkdays(range);
+  const selectedDates = getSelectedBatchDates();
   const todayStr = formatDate(new Date());
   const qtys = {};
   MEAL_TYPES.forEach(mt => {
@@ -1151,10 +1182,14 @@ function confirmBatchOrder(range){
     qtys[mt.type] = e ? parseInt(e.textContent) : 0;
   });
 
-  let successCount = 0, skipPast = 0, skipLocked = 0;
+  let successCount = 0, skipPast = 0, skipLocked = 0, skipUnselected = 0;
   const user = USERS.find(u=>u.id===state.currentUserId);
-  dates.forEach(dateStr => {
-    // Past dates: skip entirely, do not create or overwrite
+  const allDates = getWorkdays(range);
+  
+  allDates.forEach(dateStr => {
+    // Not selected by user: skip
+    if(!selectedDates.includes(dateStr)){ skipUnselected++; return; }
+    // Past dates: skip entirely
     if(dateStr < todayStr){ skipPast++; return; }
     MEAL_TYPES.forEach(mt => {
       if(qtys[mt.type] === 0) return; // skip 0 qty
@@ -1190,13 +1225,14 @@ function confirmBatchOrder(range){
 
   closeModal();
   if(successCount > 0){
-    let skipMsg = '';
-    if(skipPast > 0 && skipLocked > 0) skipMsg = `（跳过 ${skipPast}天已过 + ${skipLocked}条已截单/已关闭）`;
-    else if(skipPast > 0) skipMsg = `（跳过 ${skipPast}天已过日期）`;
-    else if(skipLocked > 0) skipMsg = `（跳过 ${skipLocked}条已截单/已关闭）`;
+    let parts = [];
+    if(skipUnselected > 0) parts.push(skipUnselected+'天未勾选');
+    if(skipPast > 0) parts.push(skipPast+'天已过');
+    if(skipLocked > 0) parts.push(skipLocked+'条已截单/已关闭');
+    let skipMsg = parts.length > 0 ? `（跳过：${parts.join(' + ')}）` : '';
     toast(`一键点餐完成：${successCount} 条${skipMsg}`);
   } else {
-    toast('无可点餐项（均已过或已截单/已关闭）');
+    toast('无可点餐项（请勾选可点餐日期）');
   }
   render();
 }
