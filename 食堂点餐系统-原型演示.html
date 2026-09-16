@@ -32,7 +32,7 @@ body{font-family:-apple-system,"Microsoft YaHei","PingFang SC",sans-serif;backgr
 .h5-avatar{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px}
 
 /* ========== Employee H5 Content ========== */
-.h5-content{padding:12px 14px;padding-bottom:72px;overflow-y:auto}
+.h5-content{padding:12px 14px;padding-bottom:72px;overflow-y:auto;overflow-x:hidden}
 .h5-hint{background:var(--primary-light);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:12px;font-size:12px;color:var(--primary-dark);line-height:1.5}
 .h5-hint b{color:var(--primary)}
 
@@ -87,8 +87,8 @@ body{font-family:-apple-system,"Microsoft YaHei","PingFang SC",sans-serif;backgr
 .h5-chip.active{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:500}
 
 /* H5 quick order bar */
-.h5-quick-bar{display:flex;gap:10px;margin-bottom:14px}
-.h5-quick-btn{flex:1;min-width:0;padding:12px 10px;border:1px solid var(--primary);border-radius:var(--radius);background:var(--primary-light);color:var(--primary-dark);font-size:13px;font-weight:500;cursor:pointer;text-align:center;transition:.15s;display:flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap;overflow:hidden}
+.h5-quick-bar{display:flex;gap:8px;margin-bottom:14px;max-width:100%}
+.h5-quick-btn{flex:1;min-width:0;padding:10px 8px;border:1px solid var(--primary);border-radius:var(--radius);background:var(--primary-light);color:var(--primary-dark);font-size:12px;font-weight:500;cursor:pointer;text-align:center;transition:.15s;display:flex;align-items:center;justify-content:center;gap:3px;white-space:nowrap;overflow:hidden}
 .h5-quick-btn:active{background:var(--primary);color:#fff}
 .h5-quick-btn .qb-icon{font-size:16px}
 
