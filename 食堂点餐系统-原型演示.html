@@ -741,6 +741,9 @@ function render(){
     updateSettlePreview();
     document.getElementById('settleMonth').onchange = updateSettlePreview;
   }
+  if(document.getElementById('settleUser')){
+    document.getElementById('settleUser').onchange = updateSettlePreview;
+  }
 }
 
 /* ============================================================
@@ -1576,11 +1579,17 @@ function renderAdminQuery(){
   const todayMonth = formatDate(new Date()).substring(0,7);
   html += `<div style="background:var(--primary-light);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:14px">`;
   html += `<div style="font-size:14px;font-weight:600;margin-bottom:8px">月度结算</div>`;
-  html += `<div style="font-size:12px;color:var(--text2);margin-bottom:10px">选择历史月份，对该月所有有效记录一次性结算</div>`;
+  html += `<div style="font-size:12px;color:var(--text2);margin-bottom:10px">选择历史月份，可选员工（员工调走/离职时单独结算），对该范围内所有有效记录一次性结算</div>`;
   html += `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">`;
   html += `<input type="month" id="settleMonth" value="${todayMonth}" style="padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px">`;
-  html += `<button class="btn btn-success btn-sm" onclick="monthlySettle(true)">结算该月</button>`;
-  html += `<button class="btn btn-outline btn-sm" onclick="monthlySettle(false)">取消该月结算</button>`;
+  html += `<select id="settleUser" style="padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px">`;
+  html += `<option value="">全部员工</option>`;
+  USERS.filter(u=>u.role==='employee').forEach(u => {
+    html += `<option value="${u.id}">${u.name}（${deptName(u.deptId)}）</option>`;
+  });
+  html += `</select>`;
+  html += `<button class="btn btn-success btn-sm" onclick="monthlySettle(true)">结算</button>`;
+  html += `<button class="btn btn-outline btn-sm" onclick="monthlySettle(false)">取消结算</button>`;
   html += `</div>`;
   // 预览选中月份的结算状态
   html += `<div id="settlePreview" style="font-size:12px;color:var(--text2);margin-top:8px"></div>`;
@@ -2117,17 +2126,20 @@ function batchSettle(settled){ /* 已废弃：勾选批量结算已移除，改�
 function monthlySettle(settled){
   const monthVal = document.getElementById('settleMonth').value;
   if(!monthVal){ toast('请选择月份'); return; }
+  const userVal = document.getElementById('settleUser') ? document.getElementById('settleUser').value : '';
   const [y,m] = monthVal.split('-').map(Number);
   const monthStart = `${monthVal}-01`;
   const monthEnd = formatDate(new Date(y, m, 0));
-  const targets = state.orders.filter(o => o.status === 'active' && o.mealDate >= monthStart && o.mealDate <= monthEnd);
-  if(targets.length === 0){ toast('该月份无有效记录'); return; }
+  let targets = state.orders.filter(o => o.status === 'active' && o.mealDate >= monthStart && o.mealDate <= monthEnd);
+  if(userVal) targets = targets.filter(o => o.userId == userVal);
+  if(targets.length === 0){ toast('该范围内无有效记录'); return; }
   const now = formatDate(new Date())+' '+String(getNow().getHours()).padStart(2,'0')+':'+String(getNow().getMinutes()).padStart(2,'0');
   targets.forEach(o => {
     o.settled = settled;
     o.settledAt = settled ? now : null;
   });
-  toast(`已${settled?'结算':'取消结算'} ${monthVal} 共 ${targets.length} 条记录`);
+  const scopeText = userVal ? `${monthVal}（${userName(userVal)}）` : monthVal;
+  toast(`已${settled?'结算':'取消结算'} ${scopeText} 共 ${targets.length} 条记录`);
   render();
 }
 
@@ -2135,15 +2147,18 @@ function updateSettlePreview(){
   const el = document.getElementById('settlePreview');
   if(!el) return;
   const monthVal = document.getElementById('settleMonth').value;
+  const userVal = document.getElementById('settleUser') ? document.getElementById('settleUser').value : '';
   if(!monthVal){ el.textContent=''; return; }
   const [y,m] = monthVal.split('-').map(Number);
   const monthStart = `${monthVal}-01`;
   const monthEnd = formatDate(new Date(y, m, 0));
-  const targets = state.orders.filter(o => o.status === 'active' && o.mealDate >= monthStart && o.mealDate <= monthEnd);
+  let targets = state.orders.filter(o => o.status === 'active' && o.mealDate >= monthStart && o.mealDate <= monthEnd);
+  if(userVal) targets = targets.filter(o => o.userId == userVal);
   const settledCount = targets.filter(o=>o.settled).length;
   const unsettledCount = targets.length - settledCount;
   const totalFee = targets.reduce((s,o)=>s+o.fee, 0);
-  el.innerHTML = `该月有效记录 <b>${targets.length}</b> 条，已结算 <b style="color:var(--green)">${settledCount}</b> 条，未结算 <b style="color:var(--orange)">${unsettledCount}</b> 条，合计 ¥${totalFee.toFixed(0)}`;
+  const scopeText = userVal ? `（${userName(userVal)}）` : '（全部员工）';
+  el.innerHTML = `${monthVal}${scopeText} 有效记录 <b>${targets.length}</b> 条，已结算 <b style="color:var(--green)">${settledCount}</b> 条，未结算 <b style="color:var(--orange)">${unsettledCount}</b> 条，合计 ¥${totalFee.toFixed(0)}`;
 }
 
 function acceptMeal(mealType){
