@@ -1567,7 +1567,8 @@ function renderAdminDashboard(){
       html += `<div style="font-size:13px;color:var(--text2);margin-top:8px">${hName2 ? hName2 + '（法定节假日）' : '非工作日'}，食堂不开放，无需接单/关闭操作</div>`;
     } else if(status === 'closed' && session){
       html += `<div class="h5-meal-reason" style="margin:8px 0">关闭原因：${session.closeReason}</div>`;
-      html += `<div style="margin-top:8px"><button class="btn btn-outline btn-sm" onclick="reopenMeal('${mt.type}')">撤销关闭，改为接单</button></div>`;
+      const wasBeforeCutoff = dashDate > todayStr || (isToday(dashDate) && computeMealStatus(mt.type) === 'open');
+      html += `<div style="margin-top:8px"><button class="btn btn-outline btn-sm" onclick="reopenMeal('${mt.type}')">${wasBeforeCutoff ? '撤销关闭，恢复点餐' : '撤销关闭，改为接单'}</button></div>`;
     } else if(status === 'accepted'){
       const isPastDate = dashDate < todayStr;
       const isAuto = isPastDate || (session && session.status !== 'accepted' && isAutoAccepted(mt.type) && isToday(dashDate));
@@ -2333,12 +2334,19 @@ function reopenMeal(mealType){
   const dashDate = getAdminDashDate();
   const session = getSessionByDate(dashDate, mealType);
   if(session){
-    session.status = 'accepted';
+    // 未来日期截单前关闭 → 撤销回 open（员工可继续点餐）；其他情况 → 撤销回 accepted
+    const isFuture = dashDate > formatDate(new Date());
+    const wasBeforeCutoff = isFuture || (isToday(dashDate) && computeMealStatus(mealType) === 'open');
+    if(wasBeforeCutoff){
+      session.status = 'open';
+    } else {
+      session.status = 'accepted';
+    }
     session.closeReason = null;
     state.orders.forEach(o => {
       if(o.mealDate === session.mealDate && o.mealType === mealType && o.status === 'void') o.status = 'active';
     });
-    toast(getMealName(mealType)+'已改为接单');
+    toast(getMealName(mealType) + (wasBeforeCutoff ? '已撤销关闭，恢复点餐' : '已改为接单'));
     render();
   }
 }
