@@ -443,6 +443,7 @@ let state = {
   simHour: null,
   selectedDate: null, // null = today; else 'YYYY-MM-DD'
   calMonth: null, // {year, month} for calendar display; null = current month
+  adminDashboardDate: null, // null = smart default (auto-switch to next day after dinner+2h)
   config: {
     breakfast: {time:'08:00', price:10},
     lunch: {time:'12:00', price:20},
@@ -681,6 +682,38 @@ function isFutureDate(dateStr){
 }
 function isToday(dateStr){
   return dateStr === formatDate(new Date());
+}
+/* 智能看板日期：当前时间超过晚餐+2小时后，自动切换到下一个工作日 */
+function getSmartDashboardDate(){
+  const today = formatDate(new Date());
+  const now = getNow();
+  const [dh, dm] = getConfigTime('dinner').split(':').map(Number);
+  const switchMin = (dh + 2) * 60 + dm;
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  if(nowMin >= switchMin){
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    let dateStr = formatDate(d);
+    let guard = 0;
+    while(isNonWorkday(dateStr) && guard < 30){
+      d.setDate(d.getDate() + 1);
+      dateStr = formatDate(d);
+      guard++;
+    }
+    return dateStr;
+  }
+  return today;
+}
+function getAdminDashDate(){
+  return state.adminDashboardDate || getSmartDashboardDate();
+}
+function setAdminDate(val){ state.adminDashboardDate = val || null; render(); }
+function adminDateNav(dir){
+  const cur = getAdminDashDate();
+  const d = new Date(cur);
+  d.setDate(d.getDate() + dir);
+  state.adminDashboardDate = formatDate(d);
+  render();
 }
 function getSessionStatus(t, dateStr){
   dateStr = dateStr || getSelectedDate();
@@ -1401,35 +1434,59 @@ function renderPCFrame(){
  * RENDER - Admin Dashboard
  * ============================================================ */
 function renderAdminDashboard(){
-  const today = formatDate(new Date());
-  const todayIsWeekend = isNonWorkday(today);
+  const dashDate = getAdminDashDate();
+  const todayStr = formatDate(new Date());
+  const dashIsWeekend = isNonWorkday(dashDate);
+  // 友好日期标签
+  let dateLabel = dashDate;
+  const d = new Date(dashDate);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const diffDays = Math.round((d - today) / 86400000);
+  if(diffDays === 0) dateLabel = '今天';
+  else if(diffDays === 1) dateLabel = '明天';
+  else if(diffDays === -1) dateLabel = '昨天';
+  const hName = getHolidayName(dashDate);
+  if(hName) dateLabel += '·' + hName;
+  const isSmart = !state.adminDashboardDate;
+  const isAutoNextDay = isSmart && dashDate !== todayStr;
   let html = '';
-  if(todayIsWeekend){
-    const hName = getHolidayName(today);
-    const dayType = getDayType(today);
+  // 日期选择器
+  html += `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#fff;padding:12px 16px;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:14px">`;
+  html += `<button class="btn btn-outline btn-sm" onclick="adminDateNav(-1)">前一天</button>`;
+  html += `<input type="date" value="${dashDate}" onchange="setAdminDate(this.value)" style="padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px">`;
+  html += `<button class="btn btn-outline btn-sm" onclick="adminDateNav(1)">后一天</button>`;
+  html += `<span style="font-size:14px;font-weight:600;color:var(--primary)">${dateLabel}</span>`;
+  if(!isSmart){
+    html += `<button class="btn btn-sm btn-outline" onclick="setAdminDate('')">智能日期</button>`;
+  }
+  html += `</div>`;
+  // 提示
+  if(isAutoNextDay){
+    html += `<div class="hint" style="background:var(--primary-light)"><b>当前时间已过晚餐+2小时，已自动切换至次日看板</b>（${dateLabel}）。次日早餐面板排在最前，便于提前准备。</div>`;
+  } else if(dashIsWeekend){
+    const dayType = getDayType(dashDate);
     const reasonText = dayType === 'holiday' ? (hName ? hName + '（法定节假日）' : '法定节假日') : '非工作日';
-    html += `<div class="hint" style="background:#f5f5f5;color:var(--text2)"><b>今天是${reasonText}，食堂不开放</b>。可切换顶部"模拟时间"或查看历史数据。</div>`;
+    html += `<div class="hint" style="background:#f5f5f5;color:var(--text2)"><b>${dateLabel}是${reasonText}，食堂不开放</b>。可切换日期查看历史或未来数据。</div>`;
   } else {
-    html += `<div class="hint">运营看板展示当日各餐次点餐汇总与部门分布。截单后可进行<b>接单</b>或<b>关闭</b>操作。若距开餐前 <b>${state.config.autoAcceptHours} 小时</b>管理员未操作，系统将<b>自动接单</b>。关闭需填写原因，员工将直观显示。</div>`;
+    html += `<div class="hint">运营看板（<b>${dateLabel}</b>）展示各餐次点餐汇总与部门分布。截单后可进行<b>接单</b>或<b>关闭</b>操作。若距开餐前 <b>${state.config.autoAcceptHours} 小时</b>管理员未操作，系统将<b>自动接单</b>。关闭需填写原因，员工将直观显示。</div>`;
   }
 
   MEAL_TYPES.forEach(mt => {
-    const session = getTodaySession(mt.type);
-    const status = getSessionStatus(mt.type, today);
-    const sessionOrders = state.orders.filter(o => o.mealDate === today && o.mealType === mt.type && o.status === 'active');
+    const session = getSessionByDate(dashDate, mt.type);
+    const status = getSessionStatus(mt.type, dashDate);
+    const sessionOrders = state.orders.filter(o => o.mealDate === dashDate && o.mealType === mt.type && o.status === 'active');
     const totalQty = sessionOrders.reduce((s,o)=>s+o.quantity,0);
-    const statusText = todayIsWeekend ? '食堂不开放' : {open:'可点餐',locked:'已截单',accepted:'已接单',closed:'已关闭'}[status];
+    const statusText = dashIsWeekend ? '食堂不开放' : {open:'可点餐',locked:'已截单',accepted:'已接单',closed:'已关闭'}[status];
     const statusBadge = {open:'badge-open',locked:'badge-locked',accepted:'badge-accepted',closed:'badge-closed'}[status];
 
     const deptDist = {};
-    DEPTS.forEach(d => deptDist[d.id] = {count:0, qty:0});
+    DEPTS.forEach(d2 => deptDist[d2.id] = {count:0, qty:0});
     sessionOrders.forEach(o => { if(deptDist[o.deptId]){deptDist[o.deptId].count++; deptDist[o.deptId].qty+=o.quantity;} });
 
     html += `<div class="admin-meal-card">`;
     html += `<div class="amc-head"><div class="amc-title">${mt.icon} ${mt.name}（开餐 ${getConfigTime(mt.type)}）<span class="badge ${statusBadge}" style="margin-left:8px">${statusText}</span></div>`;
     html += `<div class="amc-total">${totalQty}<span style="font-size:14px;font-weight:400;color:var(--text2)"> 份（${sessionOrders.length}人）</span></div></div>`;
 
-    // Accepted: show qty breakdown prominently
     if(status === 'accepted' || status === 'closed'){
       const totalFee = sessionOrders.reduce((s,o)=>s+o.fee,0);
       html += `<div style="display:flex;gap:12px;margin-bottom:12px;padding:10px 14px;background:${status==='accepted'?'var(--green-light)':'var(--red-light)'};border-radius:8px;align-items:center">`;
@@ -1440,22 +1497,22 @@ function renderAdminDashboard(){
     }
 
     html += `<div style="margin-bottom:12px"><div style="font-size:13px;color:var(--text2);margin-bottom:6px">部门分布（点击数字穿透明细）</div>`;
-    DEPTS.forEach(d => {
-      if(deptDist[d.id].count > 0){
-        html += `<div class="dept-row"><span class="dept-name">${d.name}</span><span class="dept-count" onclick="showDeptDetail('${mt.type}','${today}',${d.id})">${deptDist[d.id].qty}份 / ${deptDist[d.id].count}人</span></div>`;
+    DEPTS.forEach(d2 => {
+      if(deptDist[d2.id].count > 0){
+        html += `<div class="dept-row"><span class="dept-name">${d2.name}</span><span class="dept-count" onclick="showDeptDetail('${mt.type}','${dashDate}',${d2.id})">${deptDist[d2.id].qty}份 / ${deptDist[d2.id].count}人</span></div>`;
       }
     });
     if(sessionOrders.length === 0) html += `<div style="font-size:13px;color:var(--text2)">暂无点餐</div>`;
     html += `</div>`;
 
-    if(todayIsWeekend){
-      const hName2 = getHolidayName(today);
+    if(dashIsWeekend){
+      const hName2 = getHolidayName(dashDate);
       html += `<div style="font-size:13px;color:var(--text2);margin-top:8px">${hName2 ? hName2 + '（法定节假日）' : '非工作日'}，食堂不开放，无需接单/关闭操作</div>`;
     } else if(status === 'closed' && session){
       html += `<div class="h5-meal-reason" style="margin:8px 0">关闭原因：${session.closeReason}</div>`;
       html += `<div style="margin-top:8px"><button class="btn btn-outline btn-sm" onclick="reopenMeal('${mt.type}')">撤销关闭，改为接单</button></div>`;
     } else if(status === 'accepted'){
-      const isAuto = session && session.status !== 'accepted' && isAutoAccepted(mt.type);
+      const isAuto = session && session.status !== 'accepted' && isAutoAccepted(mt.type) && isToday(dashDate);
       if(isAuto){
         html += `<div style="font-size:12px;color:var(--text2);margin-top:6px">系统自动接单（管理员未操作，距开餐不足 ${state.config.autoAcceptHours} 小时）</div>`;
         html += `<div style="display:flex;gap:8px;margin-top:6px">`;
@@ -1466,11 +1523,11 @@ function renderAdminDashboard(){
         html += `<div style="margin-top:8px"><button class="btn btn-outline btn-sm" onclick="closeMealPrompt('${mt.type}')">撤销接单，改为关闭</button></div>`;
       }
     } else if(status === 'locked'){
-      const autoAcceptRemain = (function(){
+      const autoAcceptRemain = isToday(dashDate) ? (function(){
         const now=getNow(); const [sh,sm]=getConfigTime(mt.type).split(':').map(Number);
         const autoMin=(sh - state.config.autoAcceptHours)*60+sm; const nowMin=now.getHours()*60+now.getMinutes();
         return autoMin - nowMin;
-      })();
+      })() : 0;
       html += `<div style="display:flex;gap:8px;margin-top:8px">`;
       html += `<button class="btn btn-success btn-sm" onclick="acceptMeal('${mt.type}')">接单</button>`;
       html += `<button class="btn btn-danger btn-sm" onclick="closeMealPrompt('${mt.type}')">关闭（需填原因）</button>`;
@@ -2162,7 +2219,8 @@ function updateSettlePreview(){
 }
 
 function acceptMeal(mealType){
-  const session = getTodaySession(mealType);
+  const dashDate = getAdminDashDate();
+  const session = getSessionByDate(dashDate, mealType);
   if(session){
     session.status = 'accepted';
     toast(getMealName(mealType)+'已接单');
@@ -2189,7 +2247,8 @@ function confirmCloseMeal(mealType){
   const custom = document.getElementById('customReason').value.trim();
   const reason = custom || (checked ? checked.value : '');
   if(!reason){ toast('请选择或输入关闭原因'); return; }
-  const session = getTodaySession(mealType);
+  const dashDate = getAdminDashDate();
+  const session = getSessionByDate(dashDate, mealType);
   if(session){
     session.status = 'closed';
     session.closeReason = reason;
@@ -2203,7 +2262,8 @@ function confirmCloseMeal(mealType){
 }
 
 function reopenMeal(mealType){
-  const session = getTodaySession(mealType);
+  const dashDate = getAdminDashDate();
+  const session = getSessionByDate(dashDate, mealType);
   if(session){
     session.status = 'accepted';
     session.closeReason = null;
