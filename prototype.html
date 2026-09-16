@@ -344,6 +344,15 @@ body{font-family:-apple-system,"Microsoft YaHei","PingFang SC",sans-serif;backgr
   .modal-head{padding:12px 16px}
   .modal-foot{padding:10px 16px}
 }
+/* Print - unsettled report */
+@media print{
+  body *{visibility:hidden}
+  #reportPrintArea,#reportPrintArea *{visibility:visible}
+  #reportPrintArea{position:absolute;left:0;top:0;width:100%;box-shadow:none;padding:0;margin:0}
+  #reportPrintArea .table-scroll{overflow:visible}
+  #reportPrintArea .data-table{min-width:0;font-size:12px}
+  .no-print{display:none!important}
+}
 </style>
 </head>
 <body>
@@ -460,6 +469,7 @@ let state = {
   activeStatFilter: null,
   // UI - admin
   queryFilter: {queryType:'all', deptId:'', userId:'', start:'', end:'', statusFilter:'all'},
+  reportFilter: {start:'', end:''},
   detailModalFilter: null,
 };
 
@@ -472,6 +482,7 @@ function init(){
   state.selectedDate = today;
   state.recordFilter = {start: today, end: today, statusFilter:'all'};
   state.queryFilter = {queryType:'all', deptId:'', userId:'', start: today, end: today, statusFilter:'all'};
+  state.reportFilter = {start:'', end: today};
   render();
   setInterval(updateCountdowns, 1000);
 }
@@ -1472,6 +1483,7 @@ function renderPCFrame(){
   html += `<div class="pc-sidebar">`;
   html += `<div class="pc-nav ${state.page==='dashboard'?'active':''}" onclick="goPage('dashboard')">运营看板</div>`;
   html += `<div class="pc-nav ${state.page==='query'?'active':''}" onclick="goPage('query')">查询统计</div>`;
+  html += `<div class="pc-nav ${state.page==='report'?'active':''}" onclick="goPage('report')">未结算报表</div>`;
   html += `<div class="pc-nav ${state.page==='config'?'active':''}" onclick="goPage('config')">系统配置</div>`;
   html += `<div class="pc-nav ${state.page==='users'?'active':''}" onclick="goPage('users')">员工账号</div>`;
   html += `</div>`;
@@ -1480,6 +1492,7 @@ function renderPCFrame(){
   html += `<div class="pc-content">`;
   if(state.page === 'dashboard') html += renderAdminDashboard();
   else if(state.page === 'query') html += renderAdminQuery();
+  else if(state.page === 'report') html += renderAdminReport();
   else if(state.page === 'config') html += renderAdminConfig();
   else if(state.page === 'users') html += renderUserMgmt();
   html += `</div>`;
@@ -1793,6 +1806,72 @@ function computeQueryResults(){
   }).filter(r => r.count > 0);
 
   return {totalQty, totalCount, settledFee, unsettledFee, totalFee, deptRows, userRows, filteredOrders};
+}
+
+/* ============================================================
+ * RENDER - Admin Unsettled Report
+ * ============================================================ */
+function renderAdminReport(){
+  const f = state.reportFilter;
+  const todayStr = formatDate(new Date());
+  let html = '';
+
+  // 筛选栏（打印时隐藏）
+  html += `<div class="card no-print">`;
+  html += `<div class="filter-bar">`;
+  html += `<div class="filter-item"><label>起始日期（可空=从最早记录）</label><input type="date" id="rptStart" value="${f.start}"></div>`;
+  html += `<div class="filter-item"><label>结束日期</label><input type="date" id="rptEnd" value="${f.end || todayStr}"></div>`;
+  html += `<div class="filter-item"><button class="btn btn-primary btn-sm" onclick="execReportQuery()">生成报表</button></div>`;
+  html += `<div class="filter-item"><button class="btn btn-outline btn-sm" onclick="printReport()">打印报表</button></div>`;
+  html += `</div>`;
+  html += `<div class="hint" style="margin:8px 0 0 0">统计指定日期范围内「有效且未结算」的订单，按员工汇总；不限定月初，随时可查，可打印交财务对账。起始日期留空表示从最早一条记录开始。</div>`;
+  html += `</div>`;
+
+  // 计算报表数据
+  const end = f.end || todayStr;
+  const unsettled = state.orders.filter(o =>
+    o.status === 'active' && !o.settled && o.mealDate <= end && (!f.start || o.mealDate >= f.start)
+  );
+  const actualStart = f.start || (unsettled.length ? unsettled.map(o=>o.mealDate).sort()[0] : '最早记录');
+
+  // 按员工汇总
+  const rows = {};
+  unsettled.forEach(o => {
+    if(!rows[o.userId]) rows[o.userId] = {name:o.userName, deptName:o.deptName, count:0, qty:0, fee:0};
+    rows[o.userId].count++;
+    rows[o.userId].qty += o.quantity;
+    rows[o.userId].fee += o.fee;
+  });
+  const rowList = Object.values(rows).sort((a,b)=>b.fee-a.fee);
+  const totalCount = unsettled.length;
+  const totalQty = unsettled.reduce((s,o)=>s+o.quantity,0);
+  const totalFee = unsettled.reduce((s,o)=>s+o.fee,0);
+
+  // 生成时间
+  const now = getNow();
+  const pad = n => String(n).padStart(2,'0');
+  const genTime = `${formatDate(now)} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
+  // 报表区域（打印时只显示此区域）
+  html += `<div class="card" id="reportPrintArea" style="margin-top:14px">`;
+  html += `<div style="text-align:center;margin-bottom:16px">`;
+  html += `<div style="font-size:18px;font-weight:700;color:var(--text1)">食堂点餐系统 · 未结算报表</div>`;
+  html += `<div style="font-size:13px;color:var(--text2);margin-top:6px">统计范围：${actualStart} 至 ${end}（有效且未结算订单，按员工汇总）</div>`;
+  html += `<div style="font-size:12px;color:var(--text2);margin-top:2px">生成时间：${genTime}</div>`;
+  html += `</div>`;
+
+  if(rowList.length === 0){
+    html += `<div class="h5-empty">该日期范围内暂无未结算记录</div>`;
+  } else {
+    html += `<div class="table-scroll"><table class="data-table"><thead><tr><th>序号</th><th>姓名</th><th>部门</th><th>未结算笔数</th><th>点餐份数</th><th>未结算金额</th></tr></thead><tbody>`;
+    rowList.forEach((r,i) => {
+      html += `<tr><td>${i+1}</td><td>${r.name}</td><td>${r.deptName}</td><td>${r.count}</td><td>${r.qty}</td><td>¥${r.fee.toFixed(2)}</td></tr>`;
+    });
+    html += `<tr style="font-weight:600;background:var(--primary-light)"><td colspan="3">合计（${rowList.length}人）</td><td>${totalCount}</td><td>${totalQty}</td><td>¥${totalFee.toFixed(2)}</td></tr>`;
+    html += `</tbody></table></div>`;
+  }
+  html += `</div>`;
+  return html;
 }
 
 /* ============================================================
@@ -2232,6 +2311,19 @@ function execQuery(){
   if(state.queryFilter.queryType === 'user') state.queryFilter.userId = document.getElementById('qUser').value;
   state.detailModalFilter = null;
   render();
+}
+
+function execReportQuery(){
+  state.reportFilter.start = document.getElementById('rptStart').value;
+  state.reportFilter.end = document.getElementById('rptEnd').value;
+  render();
+}
+
+function printReport(){
+  state.reportFilter.start = document.getElementById('rptStart').value;
+  state.reportFilter.end = document.getElementById('rptEnd').value;
+  render();
+  setTimeout(function(){ window.print(); }, 50);
 }
 
 function showQueryDetail(filter){
