@@ -836,7 +836,7 @@ function renderEmpHome(){
     const isClosed = status === 'closed';
     const mealPassed = isMealTimePassed(mt.type, selDate); // 开餐时间已过
     const pastOrdered = myOrder && (isPast || (status === 'accepted' && mealPassed)); // 过去日期或当日过餐，且有订餐
-    const statusText = isWknd ? (getDayType(selDate) === 'holiday' && getHolidayName(selDate) ? getHolidayName(selDate)+'·不开放' : '食堂不开放') : pastOrdered ? '已核销 ×'+myOrder.quantity+'份' : isPast ? '未订餐' : {open:'可点餐',locked:'已截单',accepted:'已接单',closed:'已关闭'}[status];
+    const statusText = isWknd ? (getDayType(selDate) === 'holiday' && getHolidayName(selDate) ? getHolidayName(selDate)+'·不开放' : '食堂不开放') : pastOrdered ? '已核销 ×'+myOrder.quantity+'份 ¥'+myOrder.fee+'元' : isPast ? '未订餐' : {open:'可点餐',locked:'已截单',accepted:'已接单',closed:'已关闭'}[status];
     const statusClass = pastOrdered ? 'st-accepted' : isPast ? 'st-locked' : {open:'st-open',locked:'st-locked',accepted:'st-accepted',closed:'st-closed'}[status];
 
     html += `<div class="h5-meal ${myOrder?'ordered':''} ${isClosed?'closed':''}">`;
@@ -871,9 +871,9 @@ function renderEmpHome(){
       const hName = getHolidayName(selDate);
       html += `<div class="h5-actions"><button class="h5-btn h5-btn-outline" disabled>${hName || '非工作日'}，食堂不开放</button></div>`;
     } else if(pastOrdered){
-      html += `<div class="h5-actions"><button class="h5-btn h5-btn-success" disabled>已核销 ×${myOrder.quantity}份 ¥${myOrder.fee}</button></div>`;
+      html += `<div class="h5-actions"><button class="h5-btn h5-btn-outline" disabled>已过就餐时间</button></div>`;
     } else if(isPast){
-      html += `<div class="h5-actions"><button class="h5-btn h5-btn-outline" disabled>该日期已过，未订餐</button></div>`;
+      html += `<div class="h5-actions"><button class="h5-btn h5-btn-outline" disabled>该日期已过</button></div>`;
     } else if(isClosed){
       html += `<div class="h5-actions"><button class="h5-btn h5-btn-outline" disabled>本餐已关闭</button></div>`;
     } else if(status === 'accepted'){
