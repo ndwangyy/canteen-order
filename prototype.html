@@ -1130,7 +1130,7 @@ function _renderBatchOrderModal(dates, rangeLabel, defaultDays){
   html += `<div style="margin-bottom:14px">`;
   html += `<div style="font-size:13px;color:var(--text2);margin-bottom:8px">选择范围（当前：${rangeLabel}）</div>`;
   html += `<div style="display:flex;gap:6px;flex-wrap:wrap">`;
-  [{label:'本周',preset:'week'},{label:'本月',preset:'month'},{label:'20天',preset:'20'},{label:'30天',preset:'30'}].forEach(opt => {
+  [{label:'本周',preset:'week'},{label:'本月',preset:'month'},{label:'10天',preset:'10'},{label:'20天',preset:'20'},{label:'30天',preset:'30'}].forEach(opt => {
     html += `<button class="btn btn-sm btn-outline" onclick="reloadBatchOrder('${opt.preset}')">${opt.label}</button>`;
   });
   html += `</div>`;
@@ -1600,7 +1600,6 @@ function renderAdminDashboard(){
       if(isFuture){
         html += `<div style="font-size:13px;color:var(--text2);margin-top:8px">尚未截单（截单时间 ${getCutoffTime(mt.type)}）</div>`;
         html += `<div style="display:flex;gap:8px;margin-top:8px">`;
-        html += `<button class="btn btn-success btn-sm" onclick="acceptMeal('${mt.type}')">提前接单</button>`;
         html += `<button class="btn btn-danger btn-sm" onclick="closeMealPrompt('${mt.type}')">关闭（需填原因）</button>`;
         html += `</div>`;
       } else {
