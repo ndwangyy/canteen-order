@@ -135,8 +135,8 @@
 <h3>2.1 技术架构</h3>
 <table>
   <tr><th style="width:20%">层级</th><th>技术选型</th><th>说明</th></tr>
-  <tr><td>前端</td><td>HTML + CSS + JavaScript（原生）</td><td>零外部 CDN 依赖，内网自包含部署；嵌入企微 WebView 展示</td></tr>
-  <tr><td>后端</td><td>Python Django</td><td>内网 Web 应用框架，快速开发</td></tr>
+  <tr><td>前端</td><td>HTML + CSS + JavaScript（原生）</td><td>零外部 CDN 依赖，公网域名自包含部署；嵌入企微 WebView 展示</td></tr>
+  <tr><td>后端</td><td>Python Django</td><td>Python Web 应用框架，快速开发</td></tr>
   <tr><td>统一认证</td><td>企业微信 OAuth2 免登</td><td>嵌入企微工作台，打开即登录，免账号密码；后端换取企微用户身份并关联系统角色</td></tr>
   <tr><td>消息通知</td><td>企微应用消息（免费）+ 短信（关键信息）</td><td>关单通知走企微实时推送 + 短信群发强触达；月度结算通知走短信；登录不消耗短信</td></tr>
   <tr><td>数据库</td><td>SQLite / MySQL</td><td>小规模用 SQLite，大规模可迁移 MySQL</td></tr>
@@ -814,7 +814,7 @@
   <tr><td>可用性</td><td>系统可用率 ≥ 99.5%（工作时间 06:00-20:00）</td><td><span class="tag tag-p0">P0</span></td></tr>
   <tr><td>安全</td><td>企微统一认证（OAuth2免登，免密码防泄漏）；数据权限隔离；防越权访问；操作日志留存</td><td><span class="tag tag-p0">P0</span></td></tr>
   <tr><td>兼容</td><td>Chrome 90+ / Edge 90+ / Safari 14+ / 移动端浏览器</td><td><span class="tag tag-p1">P1</span></td></tr>
-  <tr><td>部署</td><td>内网部署，零外部依赖；支持 Docker 或裸机部署</td><td><span class="tag tag-p0">P0</span></td></tr>
+  <tr><td>部署</td><td>公网部署（天翼云+域名，企微OAuth2回调需公网可访问）；零外部依赖；支持 Docker 或裸机部署</td><td><span class="tag tag-p0">P0</span></td></tr>
   <tr><td>数据备份</td><td>每日自动备份；支持按日期恢复</td><td><span class="tag tag-p1">P1</span></td></tr>
 </table>
 
