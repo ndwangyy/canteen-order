@@ -736,6 +736,11 @@ function render(){
     wrap.innerHTML = renderPCFrame();
   }
   bindEvents();
+  // 月度结算面板：渲染后初始化预览（内嵌script无法在innerHTML中执行，故在此绑定）
+  if(document.getElementById('settleMonth')){
+    updateSettlePreview();
+    document.getElementById('settleMonth').onchange = updateSettlePreview;
+  }
 }
 
 /* ============================================================
@@ -1597,8 +1602,6 @@ function renderAdminQuery(){
     html += `</tbody></table></div>`;
   }
   html += `</div>`;
-  // 月度结算预览脚本
-  html += `<script>updateSettlePreview();document.getElementById('settleMonth').addEventListener('change',updateSettlePreview);</script>`;
   return html;
 }
 
