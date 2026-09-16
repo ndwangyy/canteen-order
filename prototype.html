@@ -1358,7 +1358,7 @@ function renderPCFrame(){
     : `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
   const user = USERS.find(u=>u.id===state.currentUserId);
   html += `<div class="pc-topbar">
-    <div class="logo"><span class="dot"></span>食堂点餐系统 · 管理端</div>
+    <div class="logo"><span class="dot"></span>食堂点餐系统 · 管理</div>
     <div class="right">
       <div class="pc-sim"><span>${timeStr}</span>
         <select onchange="setSimTime(this.value)">
@@ -1367,8 +1367,8 @@ function renderPCFrame(){
         </select>
       </div>
       <div class="role-switch">
-        <button class="${state.role==='employee'?'active':''}" onclick="switchRole('employee')">员工端</button>
-        <button class="${state.role==='admin'?'active':''}" onclick="switchRole('admin')">管理端</button>
+        <button class="${state.role==='employee'?'active':''}" onclick="switchRole('employee')">员工</button>
+        <button class="${state.role==='admin'?'active':''}" onclick="switchRole('admin')">管理</button>
       </div>
       <div class="pc-user"><div class="avatar">${user?user.name.charAt(0):'?'}</div><span>${user?user.name:''}</span></div>
     </div>
@@ -1406,7 +1406,7 @@ function renderAdminDashboard(){
     const reasonText = dayType === 'holiday' ? (hName ? hName + '（法定节假日）' : '法定节假日') : '非工作日';
     html += `<div class="hint" style="background:#f5f5f5;color:var(--text2)"><b>今天是${reasonText}，食堂不开放</b>。可切换顶部"模拟时间"或查看历史数据。</div>`;
   } else {
-    html += `<div class="hint">运营看板展示当日各餐次点餐汇总与部门分布。截单后可进行<b>接单</b>或<b>关闭</b>操作。若距开餐前 <b>${state.config.autoAcceptHours} 小时</b>管理员未操作，系统将<b>自动接单</b>。关闭需填写原因，员工端将直观显示。</div>`;
+    html += `<div class="hint">运营看板展示当日各餐次点餐汇总与部门分布。截单后可进行<b>接单</b>或<b>关闭</b>操作。若距开餐前 <b>${state.config.autoAcceptHours} 小时</b>管理员未操作，系统将<b>自动接单</b>。关闭需填写原因，员工将直观显示。</div>`;
   }
 
   MEAL_TYPES.forEach(mt => {
