@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>食堂点餐系统 - 用户需求文档（URD）</title>
+<style>
+  :root {
+    --primary: #1a73e8;
+    --primary-dark: #1557b0;
+    --primary-light: #e8f0fe;
+    --text-main: #1f1f1f;
+    --text-secondary: #5f6368;
+    --bg: #ffffff;
+    --bg-soft: #f8f9fa;
+    --border: #dadce0;
+    --green: #1e8e3e;
+    --orange: #e8710a;
+    --red: #d93025;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Microsoft YaHei", "PingFang SC", sans-serif;
+    color: var(--text-main);
+    background: var(--bg-soft);
+    line-height: 1.8;
+    font-size: 15px;
+  }
+  .doc-container { max-width: 860px; margin: 0 auto; background: var(--bg); padding: 60px 56px; box-shadow: 0 1px 6px rgba(0,0,0,.08); }
+  /* Cover */
+  .cover { text-align: center; padding: 80px 0 60px; border-bottom: 2px solid var(--primary); margin-bottom: 40px; }
+  .cover h1 { font-size: 32px; color: var(--primary-dark); margin-bottom: 16px; letter-spacing: 2px; }
+  .cover .subtitle { font-size: 22px; color: var(--text-secondary); margin-bottom: 32px; }
+  .cover .meta { display: inline-flex; gap: 32px; font-size: 14px; color: var(--text-secondary); }
+  .cover .meta span { display: flex; align-items: center; gap: 6px; }
+  .cover .meta strong { color: var(--text-main); }
+  /* TOC */
+  .toc { background: var(--primary-light); border-radius: 12px; padding: 24px 32px; margin-bottom: 40px; }
+  .toc h2 { font-size: 16px; color: var(--primary-dark); margin-bottom: 12px; }
+  .toc ol { list-style: none; counter-reset: toc; }
+  .toc li { counter-increment: toc; padding: 4px 0; }
+  .toc li::before { content: counter(toc) ". "; color: var(--primary); font-weight: 600; margin-right: 8px; }
+  .toc a { color: var(--text-main); text-decoration: none; }
+  .toc a:hover { color: var(--primary); }
+  /* Section */
+  h2.section-title { font-size: 22px; color: var(--primary-dark); border-left: 4px solid var(--primary); padding-left: 12px; margin: 40px 0 16px; }
+  h3 { font-size: 17px; color: var(--text-main); margin: 24px 0 10px; }
+  h4 { font-size: 15px; color: var(--text-secondary); margin: 16px 0 8px; font-weight: 600; }
+  p { margin-bottom: 10px; }
+  ul, ol { margin: 8px 0 16px 24px; }
+  li { margin-bottom: 6px; }
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 14px; }
+  th { background: var(--primary); color: #fff; padding: 10px 12px; text-align: left; font-weight: 500; }
+  td { border: 1px solid var(--border); padding: 8px 12px; }
+  tr:nth-child(even) td { background: var(--bg-soft); }
+  /* Cards */
+  .card { border: 1px solid var(--border); border-radius: 8px; padding: 20px 24px; margin: 16px 0; background: var(--bg); }
+  .card-title { font-size: 15px; font-weight: 600; color: var(--primary-dark); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .card-title .icon { width: 28px; height: 28px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; }
+  /* Story cards */
+  .story { border-left: 3px solid var(--primary); padding: 12px 16px; margin: 12px 0; background: var(--bg-soft); border-radius: 0 8px 8px 0; }
+  .story-id { font-size: 12px; color: var(--primary); font-weight: 600; }
+  .story-text { font-size: 14px; margin: 4px 0; }
+  .story-accept { font-size: 13px; color: var(--text-secondary); margin-top: 6px; }
+  .story-accept::before { content: "验收标准："; font-weight: 600; color: var(--text-main); }
+  /* Tags */
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+  .tag-high { background: #fce8e6; color: var(--red); }
+  .tag-mid { background: #fef7e0; color: var(--orange); }
+  .tag-low { background: #e6f4ea; color: var(--green); }
+  /* Rule */
+  .rule { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .rule:last-child { border-bottom: none; }
+  .rule-num { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+  .rule-body { flex: 1; }
+  .rule-title { font-weight: 600; margin-bottom: 4px; }
+  .rule-desc { font-size: 14px; color: var(--text-secondary); }
+  /* Footer */
+  .footer { text-align: center; padding: 32px 0; color: var(--text-secondary); font-size: 13px; border-top: 1px solid var(--border); margin-top: 40px; }
+  @media print { .doc-container { box-shadow: none; max-width: 100%; } }
+</style>
+</head>
+<body>
+<div class="doc-container">
+
+<!-- 封面 -->
+<div class="cover">
+  <h1>食堂点餐系统</h1>
+  <div class="subtitle">用户需求文档（URD）</div>
+  <div class="meta">
+    <span>版本：<strong>V1.0</strong></span>
+    <span>日期：<strong>2026-09-15</strong></span>
+    <span>状态：<strong>初始稿</strong></span>
+  </div>
+</div>
+
+<!-- 目录 -->
+<div class="toc">
+  <h2>目录</h2>
+  <ol>
+    <li><a href="#s1">文档概述</a></li>
+    <li><a href="#s2">用户画像与角色定义</a></li>
+    <li><a href="#s3">用户故事</a></li>
+    <li><a href="#s4">业务规则</a></li>
+    <li><a href="#s5">非功能性需求</a></li>
+    <li><a href="#s6">需求优先级矩阵</a></li>
+    <li><a href="#s7">附录</a></li>
+  </ol>
+</div>
+
+<!-- 1. 文档概述 -->
+<h2 class="section-title" id="s1">1 文档概述</h2>
+
+<h3>1.1 背景与目的</h3>
+<p>客户单位内部食堂当前采用"按需打餐、事后统计"的模式，存在以下痛点：</p>
+<ul>
+  <li><strong>食材浪费严重</strong>：食堂按经验备餐，实际就餐人数波动大，剩余食材报废成本高</li>
+  <li><strong>无法预估就餐量</strong>：缺乏提前点餐机制，采购与备餐缺乏数据支撑</li>
+  <li><strong>费用核算不透明</strong>：餐费结算依赖人工统计，易出错、对账困难</li>
+  <li><strong>缺乏管理闭环</strong>：无法按部门、个人追踪用餐情况，难以持续优化</li>
+</ul>
+<p>本文档旨在明确食堂点餐系统的用户需求，为后续 PRD 编写和系统开发提供依据。</p>
+
+<h3>1.2 范围</h3>
+<p>系统覆盖以下核心场景：</p>
+<table>
+  <tr><th style="width:30%">场景</th><th>说明</th></tr>
+  <tr><td>员工点餐</td><td>员工通过系统选择早/中/晚套餐，在截单时间前可自由增删改</td></tr>
+  <tr><td>食堂运营管理</td><td>管理员查看点餐汇总，决定接单或关单（附原因说明）</td></tr>
+  <tr><td>点餐查询统计</td><td>员工/管理员按日期、部门等维度查询点餐与用餐情况</td></tr>
+  <tr><td>费用结算管理</td><td>管理员对点餐记录进行结算打标，支撑持续运营</td></tr>
+</table>
+
+<h3>1.3 术语表</h3>
+<table>
+  <tr><th style="width:18%">术语</th><th>定义</th></tr>
+  <tr><td>截单时间</td><td>距离开餐前的一段时间（默认3小时，可配置），超过后锁定当餐点餐</td></tr>
+  <tr><td>接单/关单</td><td>食堂管理员根据点餐量决定是否采购食材并供餐；关单需填写原因</td></tr>
+  <tr><td>自动核销</td><td>截单时间到达后，系统自动将点餐记录状态变更为"已锁定"，不可再修改</td></tr>
+  <tr><td>自动接单</td><td>距开餐前 M 小时（默认2小时，可配置）管理员仍未操作时，系统自动将餐次状态设为"已接单"</td></tr>
+  <tr><td>结算打标</td><td>管理员对点餐记录标记"已结算/未结算"状态，用于费用核算</td></tr>
+  <tr><td>穿透查询</td><td>在统计汇总页面点击数字，展开明细清单</td></tr>
+  <tr><td>法定工作日</td><td>按国务院发布的法定节假日安排判断：排除法定节假日和普通周末，包含调休补班日（周六日上班）。管理员可在后台维护节假日/补班日历。</td></tr>
+</table>
+
+<!-- 2. 用户画像 -->
+<h2 class="section-title" id="s2">2 用户画像与角色定义</h2>
+
+<div class="card">
+  <div class="card-title"><span class="icon">A</span>普通员工（点餐用户）</div>
+  <table>
+    <tr><td style="width:20%;font-weight:600">角色描述</td><td>单位全体在职员工，日常在食堂就餐</td></tr>
+    <tr><td style="font-weight:600">使用频率</td><td>每日2-3次（早中晚）</td></tr>
+    <tr><td style="font-weight:600">核心诉求</td><td>快速点餐/取消；查看自己的点餐记录和费用；直观看到食堂是否供餐</td></tr>
+    <tr><td style="font-weight:600">技术水平</td><td>无需培训即可上手，界面简洁直观</td></tr>
+    <tr><td style="font-weight:600">使用设备</td><td>手机为主，PC为辅</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-title"><span class="icon">B</span>食堂管理员（运营人员）</div>
+  <table>
+    <tr><td style="width:20%;font-weight:600">角色描述</td><td>负责食堂日常运营，包括食材采购、备餐决策、费用管理</td></tr>
+    <tr><td style="font-weight:600">使用频率</td><td>每日多次，主要集中在截单前后</td></tr>
+    <tr><td style="font-weight:600">核心诉求</td><td>实时查看点餐汇总；快速决定接单/关单；按多维度查询统计；结算管理</td></tr>
+    <tr><td style="font-weight:600">技术水平</td><td>具备基本电脑操作能力，系统需提供清晰的数据看板</td></tr>
+    <tr><td style="font-weight:600">使用设备</td><td>PC为主</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-title"><span class="icon">C</span>系统管理员（可选角色）</div>
+  <table>
+    <tr><td style="width:20%;font-weight:600">角色描述</td><td>负责系统配置维护，可由食堂管理员兼任</td></tr>
+    <tr><td style="font-weight:600">核心诉求</td><td>设置餐次时间、价格、截单时长等参数</td></tr>
+    <tr><td style="font-weight:600">使用设备</td><td>PC</td></tr>
+  </table>
+</div>
+
+<!-- 3. 用户故事 -->
+<h2 class="section-title" id="s3">3 用户故事</h2>
+
+<h3>3.1 员工点餐模块</h3>
+
+<div class="story">
+  <div class="story-id">US-01 <span class="tag tag-high">高</span></div>
+  <div class="story-text">作为一名<strong>员工</strong>，我希望在系统首页直观看到当日早中晚三个套餐及其价格和开餐时间，并通过日历选择日期（含未来日期）提前点餐，以便灵活安排就餐计划。</div>
+  <div class="story-accept">首页顶部显示月历，可切换月份、点击选择日期；日历上标注每天的已点餐份数；选中日期后下方显示三个餐次卡片（餐名/时间/价格/状态/操作按钮）。支持选择当天及未来日期点餐，过去日期仅供查看。</div>
+</div>
+
+<div class="story">
+  <div class="story-id">US-02 <span class="tag tag-high">高</span></div>
+  <div class="story-text">作为一名<strong>员工</strong>，我希望在截单时间之前可以自由下单、修改和取消点餐（含提前为未来日期点餐），以便灵活安排就餐计划。</div>
+  <div class="story-accept">截单前可点击"点餐"下单，已下单的可修改或取消；截单后按钮置灰，操作不可用。可提前为未来日期点餐，每个日期每餐独立判断截单状态。</div>
+</div>
+
+<div class="story">
+  <div class="story-id">US-03 <span class="tag tag-high">高</span></div>
+  <div class="story-text">作为一名<strong>员工</strong>，我希望在界面上直观看到食堂是否接单以及关闭原因，以便及时调整就餐安排。</div>
+  <div class="story-accept">餐次卡片显示"已接单"（绿色）或"已关闭"（红色+原因文字）；关闭原因在卡片上直接展示，无需点击弹窗。</div>
+</div>
+
+<div class="story">
+  <div class="story-id">US-04 <span class="tag tag-high">高</span></div>
+  <div class="story-text">作为一名<strong>员工</strong>，我希望系统能显示截单倒计时，以便我清楚知道还有多少时间可以操作。</div>
+  <div class="story-accept">每张餐次卡片显示距离截单的剩余时间倒计时（如"距截单 2小时15分"），截单后显示"已截单"。</div>
+</div>
+
+<div class="story">
+  <div class="story-id">US-04b <span class="tag tag-high">高</span></div>
+  <div class="story-text">作为一名<strong>员工</strong>，我希望能一键为本周或本月所有工作日批量点餐，弹窗确认各餐份数后提交，避免逐日重复操作。</div>
+  <div class="story-accept">首页日历下方提供"本周工作日点餐"和"本月工作日点餐"两个按钮；点击后弹窗展示覆盖日期范围、三餐份数步进器（可设0表示不点）、预计合计费用；确认后系统自动为每个工作日每餐创建/覆盖点餐记录，已截单或已关闭的餐次自动跳过。</div>
+</div>
+
+<h3>3.2 员工查询模块</h3>
+
+<div class="story">
+  <div class="story-id">US-05 <span class="tag tag-high">高</span></div>
+  <div class="story-text">作为一名<strong>员工</strong>，我希望按日期范围查询自己的点餐和用餐情况，以便了解个人就餐记录和费用。</div>
+  <div class="story-accept">选择起始/结束日期后，展示汇总统计（点餐数量、已结算费用、未结算费用、合计费用）；下方列表展示明细记录。</div>
+</div>
+
+<div class="story">
+  <div class="story-id">US-06 <span class="tag tag-mid">中</span></div>
+  <div class="story-text">作为一名<strong>员工</strong>，我希望在统计区域点击数字可以查看对应的详细清单，以便快速定位具体记录。</div>
+  <div class="story-accept">统计区域的数量/费用数字为可点击链接，点击后弹出或筛选对应的明细列表。</div>
+</div>
+
+<h3>3.3 管理员运营模块</h3>
+
+<div class="story">
+  <div class="story-id">US-07 <span class="tag tag-high">高</span></div>
+  <div class="story-text">作为一名<strong>食堂管理员</strong>，我希望在后台看到当日各餐次的点餐汇总（总份数、按部门分布），以便决定是否采购食材。</div>
+  <div class="story-accept">管理后台首页展示当日各餐次点餐总份数、各部门点餐数量分布；支持查看明细清单。</div>
+</div>
+
+<div class="story">
+  <div class="story-id">US-08 <span class="tag tag-high">高</span></div>
+  <div class="story-text">作为一名<strong>食堂管理员</strong>，我希望根据点餐数量决定接单或关闭某个餐次，关闭时需说明原因，以便员工知晓。若我忘记操作，系统应在距开餐前一定时间自动接单，避免漏单。</div>
+  <div class="story-accept">每个餐次提供"接单"和"关闭"操作；关闭时弹出原因输入框（必填），提交后员工端即时显示关闭状态和原因。距开餐前 M 小时（可配置，默认2小时）管理员未操作时，系统自动接单；管理员仍可在开餐前撤销改为关闭。</div>
+</div>
+
+<div class="story">
+  <div class="story-id">US-09 <span class="tag tag-high">高</span></div>
+  <div class="story-text">作为一名<strong>食堂管理员</strong>，我希望按用户、部门或全部部门查询点餐情况，并能点击数字穿透到明细清单，以便精细化管理。</div>
+  <div class="story-accept">支持选择"按用户/按部门/全部"三种查询维度；结果汇总表中的数字可点击穿透到对应明细清单。</div>
+</div>
+
+<div class="story">
+  <div class="story-id">US-10 <span class="tag tag-high">高</span></div>
+  <div class="story-text">作为一名<strong>食堂管理员</strong>，我希望对查询结果进行结算打标操作（标记已结算/未结算），以便持续跟踪费用结算进度。</div>
+  <div class="story-accept">在查询结果明细列表中，每条记录显示结算状态；管理员可批量或单条修改结算状态，操作后实时更新统计。</div>
+</div>
+
+<div class="story">
+  <div class="story-id">US-11 <span class="tag tag-mid">中</span></div>
+  <div class="story-text">作为一名<strong>食堂管理员</strong>，我希望后台可以设置餐次时间、套餐价格、截单时长、自动接单时间和工作日历，以便灵活调整运营策略。</div>
+  <div class="story-accept">配置页面可设置三餐开餐时间（默认8/12/18点）、每餐价格、截单时长（默认3小时）、自动接单时间（距开餐前默认2小时）、法定节假日和调休补班日历（增删日期及名称）；修改后即时生效。</div>
+</div>
+
+<!-- 4. 业务规则 -->
+<h2 class="section-title" id="s4">4 业务规则</h2>
+
+<div class="rule">
+  <div class="rule-num">1</div>
+  <div class="rule-body">
+    <div class="rule-title">三餐制与可配置时间</div>
+    <div class="rule-desc">系统固定设置早、中、晚三个餐次。默认开餐时间分别为 8:00、12:00、18:00，管理员可在后台修改。每个餐次对应一个套餐（暂不支持多套餐选择），套餐价格后台可设。</div>
+  </div>
+</div>
+
+<div class="rule">
+  <div class="rule-num">2</div>
+  <div class="rule-body">
+    <div class="rule-title">截单与自动锁定</div>
+    <div class="rule-desc">每餐在开餐前 <strong>N 小时</strong>（默认 N=3，可配置）为截单时间。截单前，员工可自由增、删、改自己的点餐记录；截单时刻到达后，系统自动将当餐所有点餐记录锁定（自动核销），此后不支持新增、修改、删除操作。<strong>员工可提前为未来日期点餐</strong>，未来日期的餐次在当日截单时间前均可操作。过去日期仅供查看，不可操作。<strong>非法定工作日食堂不开放</strong>：系统按国务院发布的法定节假日安排判断工作日，法定节假日和普通周末标注"休"字（红色=法定节假日，灰色=普通周末），调休补班日（周六日上班）标注"班"字（橙色）正常开放。非工作日点餐界面显示"食堂不开放"，不可下单；一键批量点餐自动跳过非工作日。管理员可在后台维护节假日/补班日历。</div>
+  </div>
+</div>
+
+<div class="rule">
+  <div class="rule-num">3</div>
+  <div class="rule-body">
+    <div class="rule-title">接单与关单</div>
+    <div class="rule-desc">食堂管理员可在截单后查看汇总，对每个餐次决定"接单"或"关闭"。关单时必须填写关闭原因（如"点餐人数不足""食材供应问题"等），原因将在员工端餐次卡片上直观展示。接单后餐次状态显示"已接单"。关单后已点餐记录自动取消，不计入费用。<strong>若距开餐前 M 小时（默认 M=2，可配置）管理员仍未操作，系统自动按"接单"处理</strong>，管理员仍可在开餐前撤销改为关闭。</div>
+  </div>
+</div>
+
+<div class="rule">
+  <div class="rule-num">4</div>
+  <div class="rule-body">
+    <div class="rule-title">点餐唯一性</div>
+    <div class="rule-desc">同一员工同一餐次只能有一条有效点餐记录。修改即覆盖原有记录，取消即删除记录，不存在"多条同时有效"的情况。</div>
+  </div>
+</div>
+
+<div class="rule">
+  <div class="rule-num">5</div>
+  <div class="rule-body">
+    <div class="rule-title">费用结算打标</div>
+    <div class="rule-desc">点餐记录的费用状态分为"未结算"和"已结算"两种。默认下单后为"未结算"。管理员在查询结果中可对记录进行结算打标（单条或批量），标记后状态变为"已结算"。已关闭（关单）的餐次对应记录不计入费用。</div>
+  </div>
+</div>
+
+<div class="rule">
+  <div class="rule-num">6</div>
+  <div class="rule-body">
+    <div class="rule-title">查询统计口径</div>
+    <div class="rule-desc">统计指标包括：点餐数量（份数）、已结算费用（已结算记录的费用合计）、未结算费用（未结算记录的费用合计）、合计费用（已结算+未结算）。点击统计数字可穿透查看对应的明细清单。已关闭餐次的记录不计入统计。</div>
+  </div>
+</div>
+
+<div class="rule">
+  <div class="rule-num">7</div>
+  <div class="rule-body">
+    <div class="rule-title">后台穿透查询</div>
+    <div class="rule-desc">管理员查询支持三种维度：按指定用户查询、按指定部门查询、查询全部部门。查询结果汇总表中的数字（数量/费用）均可点击穿透至明细清单。明细清单支持进一步筛选和结算打标操作。</div>
+  </div>
+</div>
+
+<!-- 5. 非功能性需求 -->
+<h2 class="section-title" id="s5">5 非功能性需求</h2>
+
+<table>
+  <tr><th style="width:20%">维度</th><th>要求</th><th style="width:12%">优先级</th></tr>
+  <tr><td>易用性</td><td>员工端操作不超过3步完成点餐；界面信息一目了然，无需培训</td><td><span class="tag tag-high">高</span></td></tr>
+  <tr><td>响应速度</td><td>页面加载 ≤ 2秒；点餐/查询操作响应 ≤ 1秒</td><td><span class="tag tag-high">高</span></td></tr>
+  <tr><td>兼容性</td><td>员工端需适配手机浏览器；管理后台适配PC浏览器（Chrome/Edge）</td><td><span class="tag tag-high">高</span></td></tr>
+  <tr><td>实时性</td><td>管理员关单后，员工端需在下次刷新或轮询时即时反映状态变化</td><td><span class="tag tag-mid">中</span></td></tr>
+  <tr><td>数据安全</td><td>用户身份需鉴权；仅可查看本人记录；管理员可查看全员数据</td><td><span class="tag tag-high">高</span></td></tr>
+  <tr><td>可维护性</td><td>餐次时间、价格、截单时长等参数全部后台可配，无需改代码</td><td><span class="tag tag-high">高</span></td></tr>
+  <tr><td>部署方式</td><td>内网部署，数据不出单位网络</td><td><span class="tag tag-high">高</span></td></tr>
+</table>
+
+<!-- 6. 需求优先级矩阵 -->
+<h2 class="section-title" id="s6">6 需求优先级矩阵</h2>
+
+<table>
+  <tr><th style="width:10%">编号</th><th>需求描述</th><th style="width:12%">角色</th><th style="width:10%">优先级</th></tr>
+  <tr><td>US-01</td><td>首页展示三餐卡片（餐名/时间/价格/状态）</td><td>员工</td><td><span class="tag tag-high">P0</span></td></tr>
+  <tr><td>US-02</td><td>截单前自由增删改点餐</td><td>员工</td><td><span class="tag tag-high">P0</span></td></tr>
+  <tr><td>US-03</td><td>界面直观显示接单/关单状态及原因</td><td>员工</td><td><span class="tag tag-high">P0</span></td></tr>
+  <tr><td>US-04</td><td>截单倒计时显示</td><td>员工</td><td><span class="tag tag-mid">P1</span></td></tr>
+  <tr><td>US-04b</td><td>本周/本月工作日一键批量点餐</td><td>员工</td><td><span class="tag tag-high">P0</span></td></tr>
+  <tr><td>US-05</td><td>按日期范围查询点餐与费用统计</td><td>员工</td><td><span class="tag tag-high">P0</span></td></tr>
+  <tr><td>US-06</td><td>统计数字穿透明细</td><td>员工</td><td><span class="tag tag-mid">P1</span></td></tr>
+  <tr><td>US-07</td><td>后台当日点餐汇总看板</td><td>管理员</td><td><span class="tag tag-high">P0</span></td></tr>
+  <tr><td>US-08</td><td>接单/关单（附原因）</td><td>管理员</td><td><span class="tag tag-high">P0</span></td></tr>
+  <tr><td>US-09</td><td>按用户/部门/全部查询+穿透明细</td><td>管理员</td><td><span class="tag tag-high">P0</span></td></tr>
+  <tr><td>US-10</td><td>结算打标操作</td><td>管理员</td><td><span class="tag tag-high">P0</span></td></tr>
+  <tr><td>US-11</td><td>后台参数配置（时间/价格/截单时长/自动接单/工作日历）</td><td>管理员</td><td><span class="tag tag-mid">P1</span></td></tr>
+</table>
+
+<!-- 7. 附录 -->
+<h2 class="section-title" id="s7">7 附录</h2>
+
+<h3>7.1 状态流转说明</h3>
+<p>单条点餐记录的状态流转如下：</p>
+<table>
+  <tr><th style="width:18%">状态</th><th>触发条件</th><th>可执行操作</th></tr>
+  <tr><td>未截单（可编辑）</td><td>员工下单后，尚未到截单时间</td><td>员工可修改/取消；管理员可查看</td></tr>
+  <tr><td>已截单（已锁定）</td><td>截单时刻自动到达</td><td>不可增删改；管理员可接单/关单</td></tr>
+  <tr><td>已接单（手动）</td><td>管理员点击"接单"</td><td>记录有效，计入统计与费用</td></tr>
+  <tr><td>已接单（自动）</td><td>距开餐前 M 小时管理员未操作，系统自动接单</td><td>记录有效；管理员仍可在开餐前撤销改为关闭</td></tr>
+  <tr><td>已关闭</td><td>管理员点击"关闭"并填写原因</td><td>记录作废，不计入费用；员工端显示关闭原因</td></tr>
+  <tr><td>已结算 / 未结算</td><td>管理员在查询页面打标</td><td>结算状态独立于上述流程，可随时修改</td></tr>
+</table>
+
+<h3>7.2 相关文档</h3>
+<ul>
+  <li>《食堂点餐系统 PRD（产品需求文档）》—— 详见同目录 PRD 文件</li>
+  <li>《食堂点餐系统 原型演示》—— 详见同目录原型 HTML 文件</li>
+</ul>
+
+<div class="footer">
+  食堂点餐系统 · 用户需求文档（URD）V1.0 · 2026-09-15
+</div>
+
+</div>
+</body>
+</html>

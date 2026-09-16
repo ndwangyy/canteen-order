@@ -1,0 +1,2133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>食堂点餐系统 - 原型演示</title>
+<style>
+:root{
+  --primary:#1a73e8;--primary-dark:#1557b0;--primary-light:#e8f0fe;
+  --green:#1e8e3e;--green-light:#e6f4ea;--orange:#e8710a;--orange-light:#fef7e0;
+  --red:#d93025;--red-light:#fce8e6;--purple:#9334e6;--purple-light:#f3e8fd;
+  --text:#1f1f1f;--text2:#5f6368;--text3:#9aa0a6;--bg:#f0f2f5;--card:#fff;
+  --border:#dadce0;--radius:12px;--radius-sm:8px;--shadow:0 1px 3px rgba(0,0,0,.12);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,"Microsoft YaHei","PingFang SC",sans-serif;background:#e4e7eb;color:var(--text);font-size:14px;line-height:1.6}
+
+/* ========== Desktop frame ========== */
+.desktop-wrap{display:flex;min-height:100vh;justify-content:center;align-items:flex-start;padding:20px;gap:20px}
+/* Phone frame (employee) */
+.phone-frame{width:390px;min-height:780px;background:var(--bg);border-radius:24px;box-shadow:0 8px 32px rgba(0,0,0,.18);overflow:hidden;position:relative;flex-shrink:0;border:1px solid #c4c7cc}
+/* PC frame (admin) */
+.pc-frame{flex:1;max-width:900px;min-height:780px;background:var(--bg);border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.12);overflow:hidden;border:1px solid #c4c7cc}
+
+/* ========== Employee H5 Topbar ========== */
+.h5-topbar{background:var(--primary);color:#fff;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;position:sticky;top:0;z-index:100}
+.h5-topbar .title{font-size:17px;font-weight:600}
+.h5-topbar .right{display:flex;align-items:center;gap:8px}
+.h5-sim{display:flex;align-items:center;gap:4px;font-size:11px}
+.h5-sim select{background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:3px 6px;font-size:11px;max-width:70px}
+.h5-sim select option{color:#333}
+.h5-avatar{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px}
+
+/* ========== Employee H5 Content ========== */
+.h5-content{padding:12px 14px;padding-bottom:72px;overflow-y:auto}
+.h5-hint{background:var(--primary-light);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:12px;font-size:12px;color:var(--primary-dark);line-height:1.5}
+.h5-hint b{color:var(--primary)}
+
+/* Meal card H5 */
+.h5-meal{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:12px;overflow:hidden;border:2px solid transparent;transition:.2s}
+.h5-meal.ordered{border-color:var(--primary)}
+.h5-meal.closed{opacity:.85}
+.h5-meal-head{padding:14px 16px 8px;display:flex;align-items:center;justify-content:space-between}
+.h5-meal-name{font-size:17px;font-weight:600;display:flex;align-items:center;gap:6px}
+.h5-meal-time{font-size:12px;color:var(--text2);margin-top:2px}
+.h5-meal-price-row{display:flex;align-items:baseline;gap:4px;padding:0 16px}
+.h5-meal-price{font-size:22px;font-weight:700;color:var(--primary)}
+.h5-meal-price-unit{font-size:13px;color:var(--text2)}
+.h5-meal-status{margin:8px 16px;padding:6px 0;border-radius:6px;font-size:13px;font-weight:500;text-align:center}
+.st-open{background:var(--green-light);color:var(--green)}
+.st-locked{background:var(--orange-light);color:var(--orange)}
+.st-accepted{background:var(--green-light);color:var(--green)}
+.st-closed{background:var(--red-light);color:var(--red)}
+.h5-meal-countdown{font-size:12px;color:var(--text2);text-align:center;padding:0 16px;margin:4px 0}
+.h5-meal-reason{font-size:12px;color:var(--red);background:var(--red-light);padding:8px 12px;border-radius:6px;margin:6px 16px}
+
+/* Quantity stepper */
+.qty-row{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid #f0f0f0}
+.qty-label{font-size:14px;font-weight:500}
+.qty-stepper{display:flex;align-items:center;gap:12px}
+.qty-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:#fff;font-size:18px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;user-select:none}
+.qty-btn:active{background:var(--primary-light);border-color:var(--primary);color:var(--primary)}
+.qty-btn:disabled{color:var(--text3);cursor:not-allowed;opacity:.5}
+.qty-val{font-size:18px;font-weight:700;min-width:32px;text-align:center}
+.qty-fee{font-size:13px;color:var(--text2);margin-left:auto}
+
+/* H5 actions */
+.h5-actions{padding:0 16px 14px}
+.h5-btn{width:100%;padding:12px;border:none;border-radius:var(--radius-sm);cursor:pointer;font-size:15px;font-weight:500;transition:.15s}
+.h5-btn:active{transform:scale(.98)}
+.h5-btn-primary{background:var(--primary);color:#fff}
+.h5-btn-primary:disabled{background:#dadce0;color:#9aa0a6;cursor:not-allowed}
+.h5-btn-danger{background:var(--red);color:#fff}
+.h5-btn-outline{background:#fff;color:var(--primary);border:1px solid var(--primary)}
+.h5-btn-outline:disabled{border-color:#dadce0;color:#9aa0a6;cursor:not-allowed}
+.h5-btn-success{background:var(--green);color:#fff}
+
+/* H5 bottom nav */
+.h5-tabbar{position:absolute;bottom:0;left:0;right:0;height:56px;background:#fff;border-top:1px solid var(--border);display:flex;z-index:100}
+.h5-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;color:var(--text2);font-size:11px}
+.h5-tab.active{color:var(--primary)}
+.h5-tab .tab-icon{font-size:20px}
+
+/* H5 filter chips */
+.h5-filter-row{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+.h5-chip{flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:13px;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--text2);transition:.15s;white-space:nowrap}
+.h5-chip.active{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:500}
+
+/* H5 quick order bar */
+.h5-quick-bar{display:flex;gap:10px;margin-bottom:14px}
+.h5-quick-btn{flex:1;padding:12px 16px;border:1px solid var(--primary);border-radius:var(--radius);background:var(--primary-light);color:var(--primary-dark);font-size:14px;font-weight:500;cursor:pointer;text-align:center;transition:.15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.h5-quick-btn:active{background:var(--primary);color:#fff}
+.h5-quick-btn .qb-icon{font-size:18px}
+
+/* Batch order modal qty row */
+.batch-meal-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #f0f0f0}
+.batch-meal-row:last-child{border-bottom:none}
+.batch-meal-info{display:flex;flex-direction:column;gap:2px}
+.batch-meal-name{font-size:15px;font-weight:600}
+.batch-meal-price{font-size:12px;color:var(--text2)}
+.batch-stepper{display:flex;align-items:center;gap:10px}
+.batch-stepper .qty-btn{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:#fff;font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;user-select:none}
+.batch-stepper .qty-btn:active{background:var(--primary-light);border-color:var(--primary)}
+.batch-stepper .qty-val{font-size:16px;font-weight:700;min-width:28px;text-align:center}
+.batch-summary{background:var(--bg);border-radius:8px;padding:12px 16px;margin-top:12px;display:flex;justify-content:space-between;align-items:center}
+.batch-summary-label{font-size:13px;color:var(--text2)}
+.batch-summary-val{font-size:20px;font-weight:700;color:var(--primary)}
+
+/* H5 stats */
+.h5-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
+.h5-stat{background:#fff;border-radius:var(--radius-sm);box-shadow:var(--shadow);padding:14px;cursor:pointer;transition:.15s;border:2px solid transparent}
+.h5-stat:active{transform:scale(.98)}
+.h5-stat.active{border-color:var(--primary);background:var(--primary-light)}
+.h5-stat-label{font-size:12px;color:var(--text2);margin-bottom:4px}
+.h5-stat-val{font-size:22px;font-weight:700}
+.h5-stat-unit{font-size:12px;font-weight:400;color:var(--text2)}
+.h5-stat.s-blue .h5-stat-val{color:var(--primary)}
+.h5-stat.s-green .h5-stat-val{color:var(--green)}
+.h5-stat.s-orange .h5-stat-val{color:var(--orange)}
+.h5-stat.s-purple .h5-stat-val{color:var(--purple)}
+
+/* H5 date picker */
+.h5-date-row{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+.h5-date-row input{flex:1;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;outline:none;background:#fff}
+.h5-date-row input:focus{border-color:var(--primary)}
+.h5-date-btn{padding:10px 18px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);font-size:14px;cursor:pointer;font-weight:500;flex-shrink:0}
+
+/* H5 Calendar */
+.h5-cal{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden}
+.h5-cal-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #f0f0f0}
+.h5-cal-month{font-size:16px;font-weight:600;color:var(--text)}
+.h5-cal-nav{display:flex;gap:8px}
+.h5-cal-nav button{width:32px;height:32px;border:1px solid var(--border);border-radius:50%;background:#fff;cursor:pointer;font-size:16px;color:var(--text2);display:flex;align-items:center;justify-content:center}
+.h5-cal-nav button:active{background:var(--primary-light)}
+.h5-cal-week{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;padding:4px 0}
+.h5-cal-week div{font-size:12px;color:var(--text2);font-weight:500}
+.h5-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding:4px}
+.h5-cal-day{aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;transition:.15s;font-size:14px;color:var(--text)}
+.h5-cal-day:active{transform:scale(.92)}
+.h5-cal-day.disabled{color:var(--text3);cursor:default}
+.h5-cal-day.today{font-weight:700}
+.h5-cal-day.today::after{content:'';position:absolute;bottom:3px;width:4px;height:4px;border-radius:50%;background:var(--primary)}
+.h5-cal-day.selected{background:var(--primary);color:#fff;font-weight:600}
+.h5-cal-day.selected .cal-qty{background:rgba(255,255,255,.3);color:#fff}
+.h5-cal-day .cal-qty{font-size:10px;color:var(--primary);font-weight:600;margin-top:1px;line-height:1}
+.h5-cal-day:not(.disabled):not(.selected):hover{background:var(--primary-light)}
+.h5-cal-day .cal-past{opacity:.4}
+.h5-cal-day.cal-weekend{color:var(--text3);background:#f5f5f5}
+.h5-cal-day.cal-weekend.selected{color:#fff}
+.h5-cal-day.cal-weekend .cal-rest{font-size:9px;color:var(--text3);line-height:1}
+.h5-cal-day.cal-weekend.selected .cal-rest{color:rgba(255,255,255,.7)}
+.h5-cal-day.cal-holiday{color:var(--red);background:var(--red-light)}
+.h5-cal-day.cal-holiday.selected{color:#fff;background:var(--primary)}
+.h5-cal-day.cal-holiday.selected .cal-rest{color:rgba(255,255,255,.8)}
+.h5-cal-day.cal-holiday .cal-rest{font-size:9px;color:var(--red);line-height:1}
+.h5-cal-day.cal-extrawork{color:var(--orange)}
+.h5-cal-day.cal-extrawork .cal-rest{font-size:9px;color:var(--orange);line-height:1;font-weight:600}
+.h5-cal-day.cal-extrawork .cal-work-tag{color:var(--orange)}
+.h5-cal-day.cal-extrawork.selected{color:#fff;background:var(--primary)}
+.h5-cal-day.cal-extrawork.selected .cal-rest{color:rgba(255,255,255,.8)}
+.h5-cal-day .cal-rest{font-size:9px;line-height:1;margin-top:1px}
+
+/* H5 record list */
+.h5-rec-card{background:#fff;border-radius:var(--radius-sm);box-shadow:var(--shadow);margin-bottom:10px;padding:14px 16px}
+.h5-rec-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.h5-rec-date{font-size:13px;font-weight:600;color:var(--text)}
+.h5-rec-meal{font-size:13px;color:var(--text2)}
+.h5-rec-bottom{display:flex;align-items:center;justify-content:space-between}
+.h5-rec-qty{font-size:13px;color:var(--text2)}
+.h5-rec-fee{font-size:16px;font-weight:700;color:var(--primary)}
+.h5-empty{text-align:center;padding:48px 20px;color:var(--text2);font-size:14px}
+
+/* ========== Admin (PC) ========== */
+.pc-topbar{background:var(--primary);color:#fff;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:100}
+.pc-topbar .logo{font-size:17px;font-weight:600;display:flex;align-items:center;gap:8px}
+.pc-topbar .logo .dot{width:10px;height:10px;border-radius:50%;background:#fff;opacity:.8}
+.pc-topbar .right{display:flex;align-items:center;gap:14px}
+.role-switch{display:flex;background:rgba(255,255,255,.15);border-radius:8px;padding:2px}
+.role-switch button{background:none;border:none;color:#fff;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px}
+.role-switch button.active{background:#fff;color:var(--primary);font-weight:600}
+.pc-sim{display:flex;align-items:center;gap:4px;font-size:12px;color:rgba(255,255,255,.85)}
+.pc-sim select{background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:4px;padding:2px 6px;font-size:12px}
+.pc-sim select option{color:#333}
+.pc-user{display:flex;align-items:center;gap:6px;font-size:13px}
+.pc-user .avatar{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-weight:600}
+.pc-sidebar{display:flex;background:#fff;border-bottom:1px solid var(--border);padding:0 24px}
+.pc-nav{padding:12px 20px;cursor:pointer;font-size:14px;color:var(--text2);border-bottom:3px solid transparent;transition:.2s}
+.pc-nav:hover{color:var(--primary)}
+.pc-nav.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:600}
+.pc-content{padding:20px}
+.card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:16px}
+.section-title{font-size:16px;font-weight:600;margin-bottom:14px;color:var(--text)}
+
+/* Admin stats */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.stat-card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 20px;cursor:pointer;transition:.15s;border:2px solid transparent}
+.stat-card:active{transform:scale(.98)}
+.stat-card .stat-label{font-size:12px;color:var(--text2);margin-bottom:4px}
+.stat-card .stat-value{font-size:24px;font-weight:700}
+.stat-card .stat-unit{font-size:13px;font-weight:400;color:var(--text2)}
+.stat-card.sc-blue .stat-value{color:var(--primary)}
+.stat-card.sc-green .stat-value{color:var(--green)}
+.stat-card.sc-orange .stat-value{color:var(--orange)}
+.stat-card.sc-purple .stat-value{color:var(--purple)}
+.stat-card.active{border-color:var(--primary);background:var(--primary-light)}
+
+/* Admin filters */
+.filter-bar{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px}
+.filter-item{display:flex;flex-direction:column;gap:4px}
+.filter-item label{font-size:12px;color:var(--text2)}
+.filter-item input,.filter-item select{padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;outline:none}
+.filter-item input:focus,.filter-item select:focus{border-color:var(--primary)}
+
+/* Admin filter chips */
+.filter-chips{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.f-chip{padding:6px 16px;border-radius:20px;font-size:13px;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--text2);transition:.15s}
+.f-chip.active{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:500}
+
+/* Admin table */
+.data-table{width:100%;border-collapse:collapse;font-size:13px}
+.data-table th{background:var(--bg);padding:10px 12px;text-align:left;font-weight:600;color:var(--text2);border-bottom:2px solid var(--border);white-space:nowrap}
+.data-table td{padding:10px 12px;border-bottom:1px solid var(--border)}
+.data-table tr:hover td{background:var(--primary-light)}
+.clickable{color:var(--primary);cursor:pointer;font-weight:600;text-decoration:underline}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:500}
+.badge-open{background:var(--green-light);color:var(--green)}
+.badge-locked{background:var(--orange-light);color:var(--orange)}
+.badge-accepted{background:var(--green-light);color:var(--green)}
+.badge-closed{background:var(--red-light);color:var(--red)}
+.badge-settled{background:var(--purple-light);color:var(--purple)}
+.badge-unsettled{background:#fef7e0;color:var(--orange)}
+.badge-void{background:#eee;color:#999}
+.badge-cancelled{background:#eee;color:#999}
+
+/* Admin meal card */
+.admin-meal-card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:16px}
+.admin-meal-card .amc-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.admin-meal-card .amc-title{font-size:16px;font-weight:600}
+.admin-meal-card .amc-total{font-size:22px;font-weight:700;color:var(--primary)}
+.dept-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0}
+.dept-row:last-child{border-bottom:none}
+.dept-name{font-size:13px;font-weight:500}
+.dept-count{font-size:13px;color:var(--primary);font-weight:600;cursor:pointer}
+
+/* Modal */
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:300}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:var(--radius);width:90%;max-width:700px;max-height:85vh;overflow-y:auto;box-shadow:0 4px 20px rgba(0,0,0,.2)}
+.modal-head{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-head h3{font-size:16px;font-weight:600}
+.modal-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--text2)}
+.modal-body{padding:20px 24px}
+.modal-foot{padding:12px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+.cb-row{display:flex;align-items:center;gap:8px;padding:6px 0}
+.cb-row input[type=radio]{width:16px;height:16px;cursor:pointer}
+
+/* Config */
+.config-form{width:100%}
+.config-section{margin-bottom:24px}
+.config-section h4{font-size:14px;font-weight:600;margin-bottom:12px;color:var(--primary-dark);padding-bottom:6px;border-bottom:1px solid var(--border)}
+.config-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0}
+.config-row label{font-size:14px}
+.config-row input,.config-row select{padding:6px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;width:140px}
+.reason-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.reason-tag{display:inline-flex;align-items:center;gap:4px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:13px}
+.reason-tag .remove{cursor:pointer;color:var(--red);font-weight:bold}
+
+/* Buttons */
+.btn{padding:10px 20px;border:none;border-radius:var(--radius-sm);cursor:pointer;font-size:14px;font-weight:500;transition:.15s}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:disabled{background:#dadce0;color:#9aa0a6;cursor:not-allowed}
+.btn-danger{background:var(--red);color:#fff}
+.btn-outline{background:#fff;color:var(--primary);border:1px solid var(--primary)}
+.btn-outline:disabled{border-color:#dadce0;color:#9aa0a6;cursor:not-allowed}
+.btn-success{background:var(--green);color:#fff}
+.btn-sm{padding:6px 14px;font-size:13px;width:auto}
+
+/* Hint */
+.hint{background:var(--primary-light);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--primary-dark)}
+.hint b{color:var(--primary)}
+
+/* Toast */
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 24px;border-radius:var(--radius-sm);font-size:14px;z-index:400;display:none;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+.toast.show{display:block;animation:fadeIn .3s}
+@keyframes fadeIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* Today summary */
+.h5-today-sum{background:#fff;border-radius:var(--radius-sm);box-shadow:var(--shadow);padding:14px 16px;margin-top:12px}
+.h5-today-sum .ts-title{font-size:14px;font-weight:600;margin-bottom:8px}
+.h5-ts-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f0f0f0}
+.h5-ts-row:last-child{border-bottom:none}
+.h5-ts-left{font-size:13px;display:flex;align-items:center;gap:8px}
+.h5-ts-right{font-size:13px;font-weight:600}
+
+@media(max-width:860px){
+  .desktop-wrap{flex-direction:column;align-items:center;padding:0}
+  .phone-frame{width:100%;max-width:400px;border-radius:0;border:none}
+  .pc-frame{width:100%;max-width:100%;border-radius:0;border:none;min-height:100vh}
+  /* Admin topbar compact - auto height for wrap */
+  .pc-topbar{padding:6px 12px;height:auto;min-height:48px;flex-wrap:wrap;gap:4px;justify-content:space-between}
+  .pc-topbar .logo{font-size:14px;flex-shrink:0}
+  .pc-topbar .logo .dot{display:none}
+  .pc-topbar .right{gap:6px;flex-wrap:wrap;justify-content:flex-end}
+  .role-switch button{padding:4px 8px;font-size:12px}
+  .pc-sim{font-size:11px}
+  .pc-sim select{font-size:11px;padding:1px 4px}
+  .pc-user span{display:none}
+  .pc-user .avatar{width:26px;height:26px;font-size:12px}
+  /* Sidebar horizontal scroll */
+  .pc-sidebar{padding:0 8px;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:0}
+  .pc-nav{padding:10px 14px;font-size:13px;white-space:nowrap;flex-shrink:0}
+  /* Content compact */
+  .pc-content{padding:12px}
+  .card{padding:14px;overflow-x:auto}
+  .section-title{font-size:15px;margin-bottom:10px}
+  /* Stats 2 columns */
+  .stats-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .stat-card{padding:12px 14px}
+  .stat-card .stat-value{font-size:20px}
+  /* Filter bar stack */
+  .filter-bar{flex-direction:column;align-items:stretch;gap:8px}
+  .filter-item{width:100%}
+  .filter-item input,.filter-item select{width:100%}
+  .filter-item button{width:100%}
+  .filter-chips{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap}
+  .f-chip{flex-shrink:nowrap}
+  /* Admin meal card compact */
+  .admin-meal-card{padding:14px}
+  .admin-meal-card .amc-head{flex-direction:column;align-items:flex-start;gap:4px}
+  .admin-meal-card .amc-title{font-size:14px}
+  .admin-meal-card .amc-total{font-size:18px}
+  /* Config form stack */
+  .config-form{width:100%}
+  .config-row{flex-direction:column;align-items:flex-start;gap:4px}
+  .config-row input,.config-row select{width:100%;max-width:none}
+  /* Hint compact */
+  .hint{padding:10px 12px;font-size:12px}
+  /* Table scroll */
+  .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .data-table{min-width:500px}
+  /* Modal full width */
+  .modal{width:95%;max-width:95%;max-height:90vh}
+  .modal-body{padding:16px}
+  .modal-head{padding:12px 16px}
+  .modal-foot{padding:10px 16px}
+}
+</style>
+</head>
+<body>
+<div class="desktop-wrap" id="desktopWrap"></div>
+<div class="modal-overlay" id="modalOverlay"><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+ * MOCK DATA
+ * ============================================================ */
+const DEPTS = [
+  {id:1, name:'技术部'},
+  {id:2, name:'市场部'},
+  {id:3, name:'财务部'},
+  {id:4, name:'行政部'},
+];
+const USERS = [
+  {id:1, name:'张三', deptId:1, role:'employee'},
+  {id:2, name:'李四', deptId:1, role:'employee'},
+  {id:3, name:'王五', deptId:2, role:'employee'},
+  {id:4, name:'赵六', deptId:2, role:'employee'},
+  {id:5, name:'钱七', deptId:3, role:'employee'},
+  {id:6, name:'孙八', deptId:3, role:'employee'},
+  {id:7, name:'周九', deptId:4, role:'employee'},
+  {id:8, name:'吴十', deptId:4, role:'employee'},
+  {id:9, name:'管理员', deptId:4, role:'admin'},
+];
+const MEAL_TYPES = [
+  {type:'breakfast', name:'早餐', icon:'☀️', defaultTime:'08:00', defaultPrice:10},
+  {type:'lunch', name:'中餐', icon:'🍜', defaultTime:'12:00', defaultPrice:20},
+  {type:'dinner', name:'晚餐', icon:'🍲', defaultTime:'18:00', defaultPrice:15},
+];
+const CLOSE_REASONS = ['点餐人数不足','食材供应问题','设备故障','临时停水停电'];
+
+/* ============================================================
+ * 2026年法定节假日安排（示例数据，真实系统应对接国务院发布的年度安排，或由管理员在后台维护）
+ * holidays: 法定放假日期（含调休连休）
+ * extraWorkdays: 调休补班日期（本该是周末但需上班）
+ * ============================================================ */
+const HOLIDAY_CALENDAR = {
+  holidays: [
+    // 元旦
+    '2026-01-01','2026-01-02','2026-01-03',
+    // 春节（除夕至初七）
+    '2026-02-15','2026-02-16','2026-02-17','2026-02-18','2026-02-19','2026-02-20','2026-02-21','2026-02-22','2026-02-23',
+    // 清明节
+    '2026-04-04','2026-04-05','2026-04-06',
+    // 劳动节
+    '2026-05-01','2026-05-02','2026-05-03','2026-05-04','2026-05-05',
+    // 端午节
+    '2026-06-19','2026-06-20','2026-06-21',
+    // 中秋节
+    '2026-09-25',
+    // 国庆节
+    '2026-10-01','2026-10-02','2026-10-03','2026-10-04','2026-10-05','2026-10-06','2026-10-07',
+  ],
+  extraWorkdays: [
+    // 春节调休补班
+    '2026-02-14','2026-02-28',
+    // 劳动节调休补班
+    '2026-04-26',
+    // 国庆节调休补班
+    '2026-09-20','2026-10-10',
+  ],
+  // 节假日名称（用于日历tooltip和日历管理展示）
+  holidayNames: {
+    '2026-01-01':'元旦','2026-02-15':'除夕','2026-02-17':'春节','2026-04-05':'清明节',
+    '2026-05-01':'劳动节','2026-06-19':'端午节','2026-09-25':'中秋节','2026-10-01':'国庆节',
+  },
+};
+
+/* Status filter options for employee records */
+const EMP_FILTERS = [
+  {key:'all', label:'全部'},
+  {key:'ordered', label:'已订餐'},
+  {key:'settled', label:'已结算'},
+  {key:'unsettled', label:'未结算'},
+  {key:'cancelled', label:'已取消'},
+];
+/* Status filter options for admin query */
+const ADMIN_FILTERS = [
+  {key:'all', label:'全部'},
+  {key:'ordered', label:'已订餐'},
+  {key:'settled', label:'已结算'},
+  {key:'unsettled', label:'未结算'},
+  {key:'cancelled', label:'已取消/已关闭'},
+];
+
+/* ============================================================
+ * STATE
+ * ============================================================ */
+let state = {
+  role: 'employee',
+  currentUserId: 1,
+  page: 'home',
+  simHour: null,
+  selectedDate: null, // null = today; else 'YYYY-MM-DD'
+  calMonth: null, // {year, month} for calendar display; null = current month
+  config: {
+    breakfast: {time:'08:00', price:10},
+    lunch: {time:'12:00', price:20},
+    dinner: {time:'18:00', price:15},
+    cutoffHours: 3,
+    autoAcceptHours: 2,
+    closeReasons: [...CLOSE_REASONS],
+  },
+  // orders: [{id, userId, deptId, mealDate, mealType, price, quantity, fee, status:'active'|'void'|'cancelled', settled:bool, settledAt, createdAt}]
+  orders: [],
+  sessions: [],
+  // UI - employee
+  recordFilter: {start:'', end:'', statusFilter:'all'},
+  activeStatFilter: null,
+  // UI - admin
+  queryFilter: {queryType:'all', deptId:'', userId:'', start:'', end:'', statusFilter:'all'},
+  detailModalFilter: null,
+};
+
+/* ============================================================
+ * INIT
+ * ============================================================ */
+function init(){
+  generateMockData();
+  const today = formatDate(new Date());
+  state.selectedDate = today;
+  state.recordFilter = {start: today, end: today, statusFilter:'all'};
+  state.queryFilter = {queryType:'all', deptId:'', userId:'', start: today, end: today, statusFilter:'all'};
+  render();
+  setInterval(updateCountdowns, 1000);
+}
+
+function generateMockData(){
+  const today = new Date();
+  let orderId = 1, sessionId = 1;
+  for(let d=6; d>=0; d--){
+    const date = new Date(today);
+    date.setDate(date.getDate() - d);
+    const dateStr = formatDate(date);
+    const isToday = d === 0;
+    const isWknd = isNonWorkday(dateStr);
+    if(isWknd) continue; // 非法定工作日不开放，跳过生成
+    MEAL_TYPES.forEach(mt => {
+      let status = 'open';
+      let closeReason = null;
+      if(isToday){
+        status = computeMealStatus(mt.type);
+        if(mt.type === 'breakfast' && state.simHour === null){
+          const hour = new Date().getHours();
+          if(hour >= 8) status = 'accepted';
+        }
+      } else {
+        if(Math.random() < 0.12){
+          status = 'closed';
+          closeReason = CLOSE_REASONS[Math.floor(Math.random()*CLOSE_REASONS.length)];
+        } else {
+          status = 'accepted';
+        }
+      }
+      state.sessions.push({
+        id: sessionId++,
+        mealDate: dateStr,
+        mealType: mt.type,
+        status: status,
+        closeReason: closeReason,
+      });
+      // generate orders with varying quantities
+      const orderCount = isToday ? Math.floor(Math.random()*4)+3 : Math.floor(Math.random()*6)+2;
+      let pool = [...USERS].filter(u=>u.role==='employee');
+      // 当天不给当前用户生成订单，确保首页默认显示未点餐状态
+      if(isToday) pool = pool.filter(u=>u.id !== state.currentUserId);
+      const shuffled = pool.sort(()=>Math.random()-0.5);
+      for(let i=0; i<orderCount && i<shuffled.length; i++){
+        const u = shuffled[i];
+        const price = state.config[mt.type].price;
+        const qty = Math.floor(Math.random()*3)+1; // 1~3
+        const isVoid = status === 'closed';
+        const settled = !isVoid && (isToday ? false : Math.random() < 0.6);
+        state.orders.push({
+          id: orderId++,
+          userId: u.id,
+          userName: u.name,
+          deptId: u.deptId,
+          deptName: DEPTS.find(d=>d.id===u.deptId).name,
+          mealDate: dateStr,
+          mealType: mt.type,
+          mealName: mt.name,
+          price: price,
+          quantity: qty,
+          fee: price * qty,
+          status: isVoid ? 'void' : 'active',
+          settled: settled,
+          settledAt: settled ? dateStr + ' 10:00' : null,
+          createdAt: dateStr + ' ' + (mt.type==='breakfast'?'07:30':mt.type==='lunch'?'10:00':'16:00'),
+        });
+      }
+    });
+  }
+  // Generate sessions for future 7 days (all open, no orders for current user)
+  for(let d=1; d<=7; d++){
+    const date = new Date(today);
+    date.setDate(date.getDate() + d);
+    const dateStr = formatDate(date);
+    if(isNonWorkday(dateStr)) continue; // 非法定工作日跳过（含节假日，排除补班日）
+    MEAL_TYPES.forEach(mt => {
+      state.sessions.push({
+        id: sessionId++,
+        mealDate: dateStr,
+        mealType: mt.type,
+        status: 'open',
+        closeReason: null,
+      });
+      // generate some orders for other users (not current user, to keep clean state)
+      let pool = [...USERS].filter(u=>u.role==='employee' && u.id !== state.currentUserId);
+      const shuffled = pool.sort(()=>Math.random()-0.5);
+      const orderCount = Math.floor(Math.random()*4)+1;
+      for(let i=0; i<orderCount && i<shuffled.length; i++){
+        const u = shuffled[i];
+        const price = state.config[mt.type].price;
+        const qty = Math.floor(Math.random()*3)+1;
+        state.orders.push({
+          id: orderId++,
+          userId: u.id,
+          userName: u.name,
+          deptId: u.deptId,
+          deptName: DEPTS.find(dd=>dd.id===u.deptId).name,
+          mealDate: dateStr,
+          mealType: mt.type,
+          mealName: mt.name,
+          price: price,
+          quantity: qty,
+          fee: price * qty,
+          status: 'active',
+          settled: false,
+          settledAt: null,
+          createdAt: formatDate(new Date()) + ' ' + String(getNow().getHours()).padStart(2,'0')+':'+String(getNow().getMinutes()).padStart(2,'0'),
+        });
+      }
+    });
+  }
+}
+
+/* ============================================================
+ * UTILS
+ * ============================================================ */
+function formatDate(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function getNow(){
+  if(state.simHour !== null){
+    const d = new Date();
+    d.setHours(state.simHour, 0, 0, 0);
+    return d;
+  }
+  return new Date();
+}
+function getConfigTime(t){return state.config[t].time}
+function getCutoffTime(t){
+  const [h,m] = getConfigTime(t).split(':').map(Number);
+  return String(h - state.config.cutoffHours).padStart(2,'0')+':'+String(m).padStart(2,'0');
+}
+function getAutoAcceptTime(t){
+  const [h,m] = getConfigTime(t).split(':').map(Number);
+  return String(h - state.config.autoAcceptHours).padStart(2,'0')+':'+String(m).padStart(2,'0');
+}
+function isAutoAccepted(t){
+  const now = getNow();
+  const [sh,sm] = getConfigTime(t).split(':').map(Number);
+  const autoAcceptMin = (sh - state.config.autoAcceptHours)*60 + sm;
+  const nowMin = now.getHours()*60 + now.getMinutes();
+  return nowMin >= autoAcceptMin;
+}
+function computeMealStatus(t){
+  const now = getNow();
+  const [sh,sm] = getConfigTime(t).split(':').map(Number);
+  const cutoffMin = (sh - state.config.cutoffHours)*60 + sm;
+  const nowMin = now.getHours()*60 + now.getMinutes();
+  return nowMin < cutoffMin ? 'open' : 'locked';
+}
+function getCutoffRemaining(t){
+  const now = getNow();
+  const [sh,sm] = getConfigTime(t).split(':').map(Number);
+  const cutoffMin = (sh - state.config.cutoffHours)*60 + sm;
+  const nowMin = now.getHours()*60 + now.getMinutes() + now.getSeconds()/60;
+  return Math.max(0, Math.floor((cutoffMin - nowMin)*60));
+}
+function formatCountdown(sec){
+  if(sec <= 0) return '已截单';
+  const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
+  return `距截单 ${h}时${m}分${s}秒`;
+}
+function getTodaySession(t){
+  return state.sessions.find(s => s.mealDate === formatDate(new Date()) && s.mealType === t);
+}
+function getSessionByDate(dateStr, t){
+  return state.sessions.find(s => s.mealDate === dateStr && s.mealType === t);
+}
+function getSelectedDate(){
+  return state.selectedDate || formatDate(new Date());
+}
+function isWeekend(dateStr){
+  const d = new Date(dateStr);
+  const dow = d.getDay();
+  return dow === 0 || dow === 6;
+}
+/* 法定工作日判断：优先级 补班日 > 节假日 > 周末 */
+function isNonWorkday(dateStr){
+  // 补班日：虽然是周末，但需要上班 → 是工作日
+  if(HOLIDAY_CALENDAR.extraWorkdays.includes(dateStr)) return false;
+  // 法定节假日 → 非工作日
+  if(HOLIDAY_CALENDAR.holidays.includes(dateStr)) return true;
+  // 普通周末 → 非工作日
+  return isWeekend(dateStr);
+}
+/* 获取日期类型：workday / holiday / weekendRest / extraWorkday */
+function getDayType(dateStr){
+  if(HOLIDAY_CALENDAR.extraWorkdays.includes(dateStr)) return 'extraWorkday';
+  if(HOLIDAY_CALENDAR.holidays.includes(dateStr)) return 'holiday';
+  if(isWeekend(dateStr)) return 'weekendRest';
+  return 'workday';
+}
+function getHolidayName(dateStr){
+  return HOLIDAY_CALENDAR.holidayNames[dateStr] || '';
+}
+function isFutureDate(dateStr){
+  return dateStr > formatDate(new Date());
+}
+function isToday(dateStr){
+  return dateStr === formatDate(new Date());
+}
+function getSessionStatus(t, dateStr){
+  dateStr = dateStr || getSelectedDate();
+  // 非法定工作日（节假日/周末）：食堂不开放
+  if(isNonWorkday(dateStr)) return 'closed';
+  const session = getSessionByDate(dateStr, t);
+  if(!session) return 'open';
+  if(session.status === 'closed') return 'closed';
+  if(session.status === 'accepted') return 'accepted';
+  if(session.status === 'rejected') return 'locked';
+  if(isFutureDate(dateStr)) return 'open';
+  // For today, compute from current/simulated time
+  if(isToday(dateStr)){
+    const computed = computeMealStatus(t);
+    if(computed === 'locked'){
+      if(isAutoAccepted(t)) return 'accepted';
+      return 'locked';
+    }
+    return session.status;
+  }
+  // Past dates: already resolved
+  return session.status === 'open' ? 'accepted' : session.status;
+}
+function getMealName(t){const m=MEAL_TYPES.find(x=>x.type===t);return m?m.name:t}
+function getMealIcon(t){const m=MEAL_TYPES.find(x=>x.type===t);return m?m.icon:''}
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 2200);
+}
+function deptName(id){const d=DEPTS.find(x=>x.id===id);return d?d.name:'-'}
+function userName(id){const u=USERS.find(x=>x.id===id);return u?u.name:'-'}
+
+/* Get order display status */
+function getOrderDisplayStatus(o){
+  if(o.status === 'void' || o.status === 'cancelled') return 'cancelled';
+  if(o.status === 'active' && o.settled) return 'settled';
+  if(o.status === 'active' && !o.settled) return 'ordered';
+  return 'ordered';
+}
+
+/* ============================================================
+ * RENDER - main
+ * ============================================================ */
+function render(){
+  const wrap = document.getElementById('desktopWrap');
+  if(state.role === 'employee'){
+    wrap.innerHTML = renderPhoneFrame();
+  } else {
+    wrap.innerHTML = renderPCFrame();
+  }
+  bindEvents();
+}
+
+/* ============================================================
+ * RENDER - Phone Frame (Employee H5)
+ * ============================================================ */
+function renderPhoneFrame(){
+  let html = `<div class="phone-frame">`;
+  // Top bar
+  const now = getNow();
+  const timeStr = state.simHour !== null
+    ? `模拟 ${String(state.simHour).padStart(2,'0')}:00`
+    : `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const user = USERS.find(u=>u.id===state.currentUserId);
+  html += `<div class="h5-topbar">
+    <div class="title">食堂点餐</div>
+    <div class="right">
+      <div class="h5-sim"><span>${timeStr}</span>
+        <select onchange="setSimTime(this.value)">
+          <option value="">实时</option>
+          ${[6,7,8,9,10,11,12,13,14,15,16,17,18,19,20].map(h=>`<option value="${h}" ${state.simHour==h?'selected':''}>${String(h).padStart(2,'0')}:00</option>`).join('')}
+        </select>
+      </div>
+      <div class="role-switch" style="background:rgba(255,255,255,.15);border-radius:6px;padding:1px;display:flex">
+        <button class="${state.role==='employee'?'active':''}" onclick="switchRole('employee')" style="background:${state.role==='employee'?'#fff':'none'};border:none;color:${state.role==='employee'?'var(--primary)':'#fff'};padding:4px 10px;border-radius:5px;cursor:pointer;font-size:12px;font-weight:${state.role==='employee'?'600':'400'}">员工</button>
+        <button class="${state.role==='admin'?'active':''}" onclick="switchRole('admin')" style="background:${state.role==='admin'?'#fff':'none'};border:none;color:${state.role==='admin'?'var(--primary)':'#fff'};padding:4px 10px;border-radius:5px;cursor:pointer;font-size:12px;font-weight:${state.role==='admin'?'600':'400'}">管理</button>
+      </div>
+      <div class="h5-avatar" onclick="cycleUser()" style="cursor:pointer">${user?user.name.charAt(0):'?'}</div>
+    </div>
+  </div>`;
+
+  // Content
+  html += `<div class="h5-content">`;
+  if(state.page === 'home') html += renderEmpHome();
+  else if(state.page === 'records') html += renderEmpRecords();
+  html += `</div>`;
+
+  // Bottom tab bar
+  html += `<div class="h5-tabbar">
+    <div class="h5-tab ${state.page==='home'?'active':''}" onclick="goPage('home')">
+      <span class="tab-icon">🍽️</span><span>点餐</span>
+    </div>
+    <div class="h5-tab ${state.page==='records'?'active':''}" onclick="goPage('records')">
+      <span class="tab-icon">📋</span><span>我的记录</span>
+    </div>
+    <div class="h5-tab" onclick="cycleUser()">
+      <span class="tab-icon">👤</span><span>切换用户</span>
+    </div>
+  </div>`;
+  html += `</div>`;
+  return html;
+}
+
+/* ============================================================
+ * RENDER - Employee Home (H5)
+ * ============================================================ */
+function renderEmpHome(){
+  const selDate = getSelectedDate();
+  const myOrders = state.orders.filter(o => o.userId === state.currentUserId && o.mealDate === selDate);
+  const isPast = selDate < formatDate(new Date());
+  const isTodayDate = isToday(selDate);
+  const isWknd = isNonWorkday(selDate);
+  let html = '';
+
+  // Calendar
+  html += renderCalendar(selDate);
+
+  // Quick order bar (only show for today or future, not weekend)
+  if(!isPast && !isWknd){
+    html += `<div class="h5-quick-bar">`;
+    html += `<div class="h5-quick-btn" onclick="openBatchOrder('week')"><span class="qb-icon">⚡</span>本周工作日点餐</div>`;
+    html += `<div class="h5-quick-btn" onclick="openBatchOrder('month')"><span class="qb-icon">⚡</span>本月工作日点餐</div>`;
+    html += `</div>`;
+  }
+
+  // Hint
+  if(isPast){
+    html += `<div class="h5-hint" style="background:#f5f5f5;color:var(--text2)">该日期已过，仅供查看历史记录。</div>`;
+  } else if(isWknd){
+    const hName = getHolidayName(selDate);
+    const dayType = getDayType(selDate);
+    const reasonText = dayType === 'holiday' ? (hName ? hName + "（法定节假日）" : '法定节假日') : '非工作日';
+    html += `<div class="h5-hint" style="background:#f5f5f5;color:var(--text2)"><b>${reasonText}，食堂不开放</b>，请选择工作日点餐。</div>`;
+  } else {
+    html += `<div class="h5-hint">已选 <b>${selDate}</b>，选择餐次和份数后点击<b>点餐</b>，截单前可自由修改取消。</div>`;
+  }
+
+  MEAL_TYPES.forEach(mt => {
+    const status = getSessionStatus(mt.type, selDate);
+    const myOrder = myOrders.find(o => o.mealType === mt.type);
+    const session = getSessionByDate(selDate, mt.type);
+    const price = state.config[mt.type].price;
+    const canOrder = status === 'open';
+    const isClosed = status === 'closed';
+    const statusText = isWknd ? (getDayType(selDate) === 'holiday' && getHolidayName(selDate) ? getHolidayName(selDate)+'·不开放' : '食堂不开放') : {open:'可点餐',locked:'已截单',accepted:'已接单',closed:'已关闭'}[status];
+    const statusClass = {open:'st-open',locked:'st-locked',accepted:'st-accepted',closed:'st-closed'}[status];
+
+    html += `<div class="h5-meal ${myOrder?'ordered':''} ${isClosed?'closed':''}">`;
+    html += `<div class="h5-meal-head"><div><div class="h5-meal-name">${mt.icon} ${mt.name}</div><div class="h5-meal-time">开餐 ${getConfigTime(mt.type)} · 截单 ${getCutoffTime(mt.type)}</div></div></div>`;
+    html += `<div class="h5-meal-price-row"><span class="h5-meal-price">¥${price}</span><span class="h5-meal-price-unit">/份</span></div>`;
+    html += `<div class="h5-meal-status ${statusClass}">${statusText}</div>`;
+    if(isTodayDate && canOrder){
+      const remaining = getCutoffRemaining(mt.type);
+      if(remaining > 0) html += `<div class="h5-meal-countdown" id="cd-${mt.type}">${formatCountdown(remaining)}</div>`;
+    }
+    if(isClosed && session && session.closeReason){
+      html += `<div class="h5-meal-reason">关闭原因：${session.closeReason}</div>`;
+    }
+    if(canOrder && !isPast){
+      const curQty = 1;
+      html += `<div class="qty-row">`;
+      html += `<span class="qty-label">份数</span>`;
+      html += `<div class="qty-stepper">`;
+      html += `<div class="qty-btn" onclick="adjustQty('${mt.type}',-1)">−</div>`;
+      html += `<span class="qty-val" id="qty-${mt.type}">${curQty}</span>`;
+      html += `<div class="qty-btn" onclick="adjustQty('${mt.type}',1)">+</div>`;
+      html += `<span class="qty-fee" id="qtyfee-${mt.type}">¥${(price*curQty).toFixed(0)}</span>`;
+      html += `</div></div>`;
+      html += `<div class="h5-actions">`;
+      if(myOrder){
+        html += `<button class="h5-btn h5-btn-danger" onclick="cancelOrder(${myOrder.id})">取消点餐</button>`;
+      } else {
+        html += `<button class="h5-btn h5-btn-primary" onclick="placeOrder('${mt.type}')">立即点餐</button>`;
+      }
+      html += `</div>`;
+    } else if(isWknd){
+      const hName = getHolidayName(selDate);
+      html += `<div class="h5-actions"><button class="h5-btn h5-btn-outline" disabled>${hName || '非工作日'}，食堂不开放</button></div>`;
+    } else if(isClosed){
+      html += `<div class="h5-actions"><button class="h5-btn h5-btn-outline" disabled>本餐已关闭</button></div>`;
+    } else if(status === 'accepted'){
+      html += `<div class="h5-actions"><button class="h5-btn h5-btn-success" disabled>已接单，请按时就餐</button></div>`;
+    } else if(isPast){
+      html += `<div class="h5-actions"><button class="h5-btn h5-btn-outline" disabled>该日期已过</button></div>`;
+    } else {
+      html += `<div class="h5-actions"><button class="h5-btn h5-btn-outline" disabled>已截单，无法操作</button></div>`;
+    }
+    html += `</div>`;
+  });
+
+  // Selected date summary
+  if(myOrders.length > 0){
+    html += `<div class="h5-today-sum"><div class="ts-title">${selDate} 已点餐</div>`;
+    myOrders.forEach(o => {
+      const ds = getOrderDisplayStatus(o);
+      const sBadge = ds==='cancelled' ? '<span class="badge badge-cancelled">已取消</span>' :
+        getSessionStatus(o.mealType, o.mealDate)==='accepted' ? '<span class="badge badge-accepted">已接单</span>' :
+        '<span class="badge badge-locked">已截单</span>';
+      const settBadge = ds==='cancelled' ? '-' :
+        o.settled ? '<span class="badge badge-settled">已结算</span>' : '<span class="badge badge-unsettled">未结算</span>';
+      html += `<div class="h5-ts-row"><div class="h5-ts-left">${o.mealName} ×${o.quantity} ${sBadge} ${settBadge}</div><div class="h5-ts-right">¥${o.fee}</div></div>`;
+    });
+    html += `</div>`;
+  }
+  return html;
+}
+
+/* ============================================================
+ * RENDER - Calendar
+ * ============================================================ */
+function renderCalendar(selDate){
+  const todayStr = formatDate(new Date());
+  const sel = state.calMonth || {year:new Date().getFullYear(), month:new Date().getMonth()};
+  const year = sel.year, month = sel.month;
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month+1, 0);
+  const startWeekday = firstDay.getDay(); // 0=Sun
+  const daysInMonth = lastDay.getDate();
+  const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const weekNames = ['日','一','二','三','四','五','六'];
+
+  // Get my orders per date for badge counts
+  const myDateOrders = {};
+  state.orders.filter(o => o.userId === state.currentUserId && o.status === 'active').forEach(o => {
+    if(o.mealDate >= formatDate(new Date(year, month, 1)) && o.mealDate <= formatDate(new Date(year, month+1, 0))) {
+      if(!myDateOrders[o.mealDate]) myDateOrders[o.mealDate] = 0;
+      myDateOrders[o.mealDate] += o.quantity;
+    }
+  });
+
+  let html = `<div class="h5-cal">`;
+  // Header with month nav
+  html += `<div class="h5-cal-head">`;
+  html += `<div class="h5-cal-nav"><button onclick="calNav(-1)">‹</button></div>`;
+  html += `<div class="h5-cal-month">${year}年${monthNames[month]}</div>`;
+  html += `<div class="h5-cal-nav"><button onclick="calNav(1)">›</button></div>`;
+  html += `</div>`;
+  // Weekday headers
+  html += `<div class="h5-cal-week">`;
+  weekNames.forEach(w => html += `<div>${w}</div>`);
+  html += `</div>`;
+  // Day grid
+  html += `<div class="h5-cal-grid">`;
+  // Empty cells before first day
+  for(let i=0; i<startWeekday; i++) html += `<div></div>`;
+  for(let d=1; d<=daysInMonth; d++){
+    const dateStr = formatDate(new Date(year, month, d));
+    const isToday = dateStr === todayStr;
+    const isPast = dateStr < todayStr;
+    const isSelected = dateStr === selDate;
+    const dayType = getDayType(dateStr); // workday / holiday / weekendRest / extraWorkday
+    const isNonWork = dayType === 'holiday' || dayType === 'weekendRest';
+    const qty = myDateOrders[dateStr] || 0;
+    let classes = 'h5-cal-day';
+    if(isToday) classes += ' today';
+    if(isSelected) classes += ' selected';
+    if(isPast) classes += ' cal-past';
+    if(dayType === 'holiday') classes += ' cal-holiday';
+    else if(dayType === 'weekendRest') classes += ' cal-weekend';
+    else if(dayType === 'extraWorkday') classes += ' cal-extrawork';
+    const hName = getHolidayName(dateStr);
+    const tooltip = dayType === 'holiday' ? (hName ? hName + '（法定节假日）' : '法定节假日') :
+      dayType === 'weekendRest' ? '周末' :
+      dayType === 'extraWorkday' ? '调休补班日' : '';
+    html += `<div class="${classes}" onclick="selectDate('${dateStr}')" ${tooltip ? `title="${tooltip}"` : ''}>`;
+    html += `<span>${d}</span>`;
+    if(dayType === 'holiday'){
+      html += `<span class="cal-rest">${hName ? hName : '休'}</span>`;
+    } else if(dayType === 'weekendRest'){
+      html += `<span class="cal-rest">休</span>`;
+    } else if(dayType === 'extraWorkday'){
+      html += `<span class="cal-rest cal-work-tag">班</span>`;
+    } else if(qty > 0){
+      html += `<span class="cal-qty">${qty}份</span>`;
+    }
+    html += `</div>`;
+  }
+  html += `</div>`;
+  html += `</div>`;
+  return html;
+}
+
+function calNav(dir){
+  let y, m;
+  if(state.calMonth){
+    y = state.calMonth.year;
+    m = state.calMonth.month + dir;
+    if(m < 0){ m = 11; y--; }
+    if(m > 11){ m = 0; y++; }
+  } else {
+    const now = new Date();
+    y = now.getFullYear();
+    m = now.getMonth() + dir;
+    if(m < 0){ m = 11; y--; }
+    if(m > 11){ m = 0; y++; }
+  }
+  state.calMonth = {year:y, month:m};
+  render();
+}
+
+function selectDate(dateStr){
+  state.selectedDate = dateStr;
+  const d = new Date(dateStr);
+  state.calMonth = {year:d.getFullYear(), month:d.getMonth()};
+  render();
+}
+
+/* ============================================================
+ * BATCH ORDER (Quick order for week/month workdays)
+ * ============================================================ */
+function getWorkdays(range){
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const todayStr = formatDate(today);
+  let dates = [];
+  if(range === 'week'){
+    // 本周周一至周日（7天），逐日判断法定工作日（含周末补班日）
+    const day = today.getDay(); // 0=Sun
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - (day === 0 ? 6 : day - 1));
+    for(let i=0; i<7; i++){
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      const dStr = formatDate(d);
+      if(dStr >= todayStr && !isNonWorkday(dStr)) dates.push(dStr);
+    }
+  } else {
+    // 当月所有日期，逐日判断法定工作日（含周末补班日）
+    const year = today.getFullYear(), month = today.getMonth();
+    const lastDay = new Date(year, month+1, 0).getDate();
+    for(let d=1; d<=lastDay; d++){
+      const date = new Date(year, month, d);
+      const dStr = formatDate(date);
+      if(dStr >= todayStr && !isNonWorkday(dStr)) dates.push(dStr);
+    }
+  }
+  return dates;
+}
+
+function openBatchOrder(range){
+  const dates = getWorkdays(range);
+  const rangeLabel = range === 'week' ? '本周' : '本月';
+  if(dates.length === 0){ toast(rangeLabel + '没有可点餐的工作日'); return; }
+
+  // Default quantities: 1 for each meal
+  const defaultQty = {breakfast:1, lunch:1, dinner:1};
+
+  let html = `<div class="modal-head"><h3>${rangeLabel}工作日一键点餐</h3><button class="modal-close" onclick="closeModal()">×</button></div>`;
+  html += `<div class="modal-body">`;
+
+  // Date range info
+  html += `<div style="background:var(--bg);border-radius:8px;padding:10px 14px;margin-bottom:16px">`;
+  html += `<div style="font-size:13px;color:var(--text2)">覆盖日期范围</div>`;
+  html += `<div style="font-size:14px;font-weight:600;margin-top:4px">${dates[0]} 至 ${dates[dates.length-1]}（共 ${dates.length} 个工作日）</div>`;
+  html += `<div style="font-size:12px;color:var(--text2);margin-top:2px">已点餐的日期将覆盖更新，已截单的餐次自动跳过</div>`;
+  html += `</div>`;
+
+  // Meal qty selection
+  html += `<div style="font-size:14px;font-weight:600;margin-bottom:8px">设置每餐份数</div>`;
+  MEAL_TYPES.forEach(mt => {
+    const price = state.config[mt.type].price;
+    html += `<div class="batch-meal-row">`;
+    html += `<div class="batch-meal-info">`;
+    html += `<span class="batch-meal-name">${mt.icon} ${mt.name}</span>`;
+    html += `<span class="batch-meal-price">¥${price}/份 · 开餐 ${getConfigTime(mt.type)}</span>`;
+    html += `</div>`;
+    html += `<div class="batch-stepper">`;
+    html += `<div class="qty-btn" onclick="adjustBatchQty('${mt.type}',-1)">−</div>`;
+    html += `<span class="qty-val" id="bq-${mt.type}">${defaultQty[mt.type]}</span>`;
+    html += `<div class="qty-btn" onclick="adjustBatchQty('${mt.type}',1)">+</div>`;
+    html += `</div>`;
+    html += `</div>`;
+  });
+
+  // Summary
+  html += `<div class="batch-summary">`;
+  html += `<div class="batch-summary-label">预计合计（${dates.length}天 × 3餐）</div>`;
+  html += `<div class="batch-summary-val" id="batchTotal">¥${calcBatchTotal(defaultQty, dates.length).toFixed(0)}</div>`;
+  html += `</div>`;
+
+  html += `</div>`;
+
+  // Footer
+  html += `<div class="modal-foot">`;
+  html += `<button class="btn btn-outline" onclick="closeModal()">取消</button>`;
+  html += `<button class="btn btn-primary" onclick="confirmBatchOrder('${range}')">确认点餐</button>`;
+  html += `</div>`;
+
+  document.getElementById('modal').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function adjustBatchQty(mealType, delta){
+  const el = document.getElementById('bq-'+mealType);
+  if(!el) return;
+  let qty = parseInt(el.textContent) + delta;
+  if(qty < 0) qty = 0;
+  if(qty > 10) qty = 10;
+  el.textContent = qty;
+  // Update total
+  const dates = getWorkdays(state._batchRange || 'week');
+  const qtys = {};
+  MEAL_TYPES.forEach(mt => {
+    const e = document.getElementById('bq-'+mt.type);
+    qtys[mt.type] = e ? parseInt(e.textContent) : 0;
+  });
+  const totalEl = document.getElementById('batchTotal');
+  if(totalEl) totalEl.textContent = '¥' + calcBatchTotal(qtys, dates.length).toFixed(0);
+}
+
+function calcBatchTotal(qtys, dayCount){
+  let total = 0;
+  MEAL_TYPES.forEach(mt => {
+    total += qtys[mt.type] * state.config[mt.type].price * dayCount;
+  });
+  return total;
+}
+
+function confirmBatchOrder(range){
+  state._batchRange = range;
+  const dates = getWorkdays(range);
+  const qtys = {};
+  MEAL_TYPES.forEach(mt => {
+    const e = document.getElementById('bq-'+mt.type);
+    qtys[mt.type] = e ? parseInt(e.textContent) : 0;
+  });
+
+  let successCount = 0, skipCount = 0;
+  const user = USERS.find(u=>u.id===state.currentUserId);
+  dates.forEach(dateStr => {
+    MEAL_TYPES.forEach(mt => {
+      if(qtys[mt.type] === 0) return; // skip 0 qty
+      const status = getSessionStatus(mt.type, dateStr);
+      if(status !== 'open'){ skipCount++; return; } // skip locked/closed
+      const existing = state.orders.find(o => o.userId===state.currentUserId && o.mealDate===dateStr && o.mealType===mt.type);
+      if(existing){
+        existing.quantity = qtys[mt.type];
+        existing.fee = existing.price * qtys[mt.type];
+        successCount++;
+      } else {
+        state.orders.push({
+          id: Math.max(0, ...state.orders.map(o=>o.id)) + 1,
+          userId: state.currentUserId,
+          userName: user.name,
+          deptId: user.deptId,
+          deptName: deptName(user.deptId),
+          mealDate: dateStr,
+          mealType: mt.type,
+          mealName: getMealName(mt.type),
+          price: state.config[mt.type].price,
+          quantity: qtys[mt.type],
+          fee: state.config[mt.type].price * qtys[mt.type],
+          status: 'active',
+          settled: false,
+          settledAt: null,
+          createdAt: formatDate(new Date()) + ' ' + String(getNow().getHours()).padStart(2,'0')+':'+String(getNow().getMinutes()).padStart(2,'0'),
+        });
+        successCount++;
+      }
+    });
+  });
+
+  closeModal();
+  if(successCount > 0){
+    toast(`一键点餐完成：${successCount} 条${skipCount > 0 ? '（跳过 '+skipCount+' 条已截单/已关闭）' : ''}`);
+  } else {
+    toast('无可点餐项（均已截单或已关闭）');
+  }
+  render();
+}
+
+/* ============================================================
+ * RENDER - Employee Records (H5)
+ * ============================================================ */
+function renderEmpRecords(){
+  const f = state.recordFilter;
+  let orders = state.orders.filter(o => o.userId === state.currentUserId);
+  if(f.start) orders = orders.filter(o => o.mealDate >= f.start);
+  if(f.end) orders = orders.filter(o => o.mealDate <= f.end);
+
+  // All orders (for stats - based on filter)
+  const activeOrders = orders.filter(o => o.status === 'active');
+  const voidOrders = orders.filter(o => o.status === 'void' || o.status === 'cancelled');
+
+  // Stats (only active orders)
+  const totalQty = activeOrders.reduce((s,o)=>s+o.quantity,0);
+  const settledFee = activeOrders.filter(o=>o.settled).reduce((s,o)=>s+o.fee,0);
+  const unsettledFee = activeOrders.filter(o=>!o.settled).reduce((s,o)=>s+o.fee,0);
+  const totalFee = settledFee + unsettledFee;
+
+  // Apply status filter
+  let displayOrders;
+  const sf = f.statusFilter;
+  if(sf === 'all') displayOrders = orders;
+  else if(sf === 'ordered') displayOrders = activeOrders.filter(o=>!o.settled);
+  else if(sf === 'settled') displayOrders = activeOrders.filter(o=>o.settled);
+  else if(sf === 'unsettled') displayOrders = activeOrders.filter(o=>!o.settled);
+  else if(sf === 'cancelled') displayOrders = voidOrders;
+
+  // Apply stat drill-down
+  const statF = state.activeStatFilter;
+  if(statF === 'settled') displayOrders = displayOrders.filter(o=>o.status==='active' && o.settled);
+  else if(statF === 'unsettled') displayOrders = displayOrders.filter(o=>o.status==='active' && !o.settled);
+  else if(statF === 'count') displayOrders = displayOrders.filter(o=>o.status==='active');
+
+  let html = '';
+  // Date pickers
+  html += `<div class="h5-date-row">`;
+  html += `<input type="date" id="recStart" value="${f.start}">`;
+  html += `<input type="date" id="recEnd" value="${f.end}">`;
+  html += `<button class="h5-date-btn" onclick="queryRecords()">查询</button>`;
+  html += `</div>`;
+
+  // Stats
+  html += `<div class="h5-stats">`;
+  html += `<div class="h5-stat s-blue ${statF==='count'?'active':''}" onclick="filterStat('count')"><div class="h5-stat-label">点餐数量</div><div class="h5-stat-val">${totalQty}<span class="h5-stat-unit"> 份</span></div></div>`;
+  html += `<div class="h5-stat s-green ${statF==='settled'?'active':''}" onclick="filterStat('settled')"><div class="h5-stat-label">已结算费用</div><div class="h5-stat-val">¥${settledFee.toFixed(0)}</div></div>`;
+  html += `<div class="h5-stat s-orange ${statF==='unsettled'?'active':''}" onclick="filterStat('unsettled')"><div class="h5-stat-label">未结算费用</div><div class="h5-stat-val">¥${unsettledFee.toFixed(0)}</div></div>`;
+  html += `<div class="h5-stat s-purple ${statF==='total'?'active':''}" onclick="filterStat('total')"><div class="h5-stat-label">合计费用</div><div class="h5-stat-val">¥${totalFee.toFixed(0)}</div></div>`;
+  html += `</div>`;
+
+  // Status filter chips
+  html += `<div class="h5-filter-row">`;
+  EMP_FILTERS.forEach(flt => {
+    html += `<div class="h5-chip ${sf===flt.key?'active':''}" onclick="setStatusFilter('${flt.key}')">${flt.label}</div>`;
+  });
+  html += `</div>`;
+
+  // Record list
+  if(displayOrders.length === 0){
+    html += `<div class="h5-empty">暂无记录</div>`;
+  } else {
+    displayOrders.sort((a,b)=>b.mealDate.localeCompare(a.mealDate)||b.id-a.id).forEach(o => {
+      const session = state.sessions.find(s=>s.mealDate===o.mealDate && s.mealType===o.mealType);
+      const mealStatus = session ? session.status : 'accepted';
+      const ds = getOrderDisplayStatus(o);
+      let sBadge, settBadge, feeDisplay;
+      if(ds === 'cancelled'){
+        sBadge = '<span class="badge badge-cancelled">已取消</span>';
+        settBadge = '-';
+        feeDisplay = '<span style="color:#999;text-decoration:line-through">¥'+o.fee+'</span>';
+      } else {
+        sBadge = mealStatus==='closed' ? '<span class="badge badge-closed">已关闭</span>' :
+          mealStatus==='accepted' ? '<span class="badge badge-accepted">已接单</span>' :
+          '<span class="badge badge-locked">已截单</span>';
+        settBadge = o.settled ? '<span class="badge badge-settled">已结算</span>' : '<span class="badge badge-unsettled">未结算</span>';
+        feeDisplay = '<span style="color:var(--primary);font-weight:700">¥'+o.fee+'</span>';
+      }
+      html += `<div class="h5-rec-card">`;
+      html += `<div class="h5-rec-top"><span class="h5-rec-date">${o.mealDate}</span><span class="h5-rec-meal">${o.mealName} ${sBadge} ${settBadge}</span></div>`;
+      html += `<div class="h5-rec-bottom"><span class="h5-rec-qty">¥${o.price}/份 × ${o.quantity}份</span><span class="h5-rec-fee">${feeDisplay}</span></div>`;
+      html += `</div>`;
+    });
+  }
+  return html;
+}
+
+/* ============================================================
+ * RENDER - PC Frame (Admin)
+ * ============================================================ */
+function renderPCFrame(){
+  let html = `<div class="pc-frame">`;
+  // Top bar
+  const now = getNow();
+  const timeStr = state.simHour !== null
+    ? `模拟 ${String(state.simHour).padStart(2,'0')}:00`
+    : `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const user = USERS.find(u=>u.id===state.currentUserId);
+  html += `<div class="pc-topbar">
+    <div class="logo"><span class="dot"></span>食堂点餐系统 · 管理端</div>
+    <div class="right">
+      <div class="pc-sim"><span>${timeStr}</span>
+        <select onchange="setSimTime(this.value)">
+          <option value="">实时</option>
+          ${[6,7,8,9,10,11,12,13,14,15,16,17,18,19,20].map(h=>`<option value="${h}" ${state.simHour==h?'selected':''}>${String(h).padStart(2,'0')}:00</option>`).join('')}
+        </select>
+      </div>
+      <div class="role-switch">
+        <button class="${state.role==='employee'?'active':''}" onclick="switchRole('employee')">员工端</button>
+        <button class="${state.role==='admin'?'active':''}" onclick="switchRole('admin')">管理端</button>
+      </div>
+      <div class="pc-user"><div class="avatar">${user?user.name.charAt(0):'?'}</div><span>${user?user.name:''}</span></div>
+    </div>
+  </div>`;
+
+  // Sidebar
+  html += `<div class="pc-sidebar">`;
+  html += `<div class="pc-nav ${state.page==='dashboard'?'active':''}" onclick="goPage('dashboard')">运营看板</div>`;
+  html += `<div class="pc-nav ${state.page==='query'?'active':''}" onclick="goPage('query')">查询统计</div>`;
+  html += `<div class="pc-nav ${state.page==='config'?'active':''}" onclick="goPage('config')">系统配置</div>`;
+  html += `<div class="pc-nav ${state.page==='users'?'active':''}" onclick="goPage('users')">员工账号</div>`;
+  html += `</div>`;
+
+  // Content
+  html += `<div class="pc-content">`;
+  if(state.page === 'dashboard') html += renderAdminDashboard();
+  else if(state.page === 'query') html += renderAdminQuery();
+  else if(state.page === 'config') html += renderAdminConfig();
+  else if(state.page === 'users') html += renderUserMgmt();
+  html += `</div>`;
+  html += `</div>`;
+  return html;
+}
+
+/* ============================================================
+ * RENDER - Admin Dashboard
+ * ============================================================ */
+function renderAdminDashboard(){
+  const today = formatDate(new Date());
+  const todayIsWeekend = isNonWorkday(today);
+  let html = '';
+  if(todayIsWeekend){
+    const hName = getHolidayName(today);
+    const dayType = getDayType(today);
+    const reasonText = dayType === 'holiday' ? (hName ? hName + '（法定节假日）' : '法定节假日') : '非工作日';
+    html += `<div class="hint" style="background:#f5f5f5;color:var(--text2)"><b>今天是${reasonText}，食堂不开放</b>。可切换顶部"模拟时间"或查看历史数据。</div>`;
+  } else {
+    html += `<div class="hint">运营看板展示当日各餐次点餐汇总与部门分布。截单后可进行<b>接单</b>或<b>关闭</b>操作。若距开餐前 <b>${state.config.autoAcceptHours} 小时</b>管理员未操作，系统将<b>自动接单</b>。关闭需填写原因，员工端将直观显示。</div>`;
+  }
+
+  MEAL_TYPES.forEach(mt => {
+    const session = getTodaySession(mt.type);
+    const status = getSessionStatus(mt.type, today);
+    const sessionOrders = state.orders.filter(o => o.mealDate === today && o.mealType === mt.type && o.status === 'active');
+    const totalQty = sessionOrders.reduce((s,o)=>s+o.quantity,0);
+    const statusText = todayIsWeekend ? '食堂不开放' : {open:'可点餐',locked:'已截单',accepted:'已接单',closed:'已关闭'}[status];
+    const statusBadge = {open:'badge-open',locked:'badge-locked',accepted:'badge-accepted',closed:'badge-closed'}[status];
+
+    const deptDist = {};
+    DEPTS.forEach(d => deptDist[d.id] = {count:0, qty:0});
+    sessionOrders.forEach(o => { if(deptDist[o.deptId]){deptDist[o.deptId].count++; deptDist[o.deptId].qty+=o.quantity;} });
+
+    html += `<div class="admin-meal-card">`;
+    html += `<div class="amc-head"><div class="amc-title">${mt.icon} ${mt.name}（开餐 ${getConfigTime(mt.type)}）<span class="badge ${statusBadge}" style="margin-left:8px">${statusText}</span></div>`;
+    html += `<div class="amc-total">${totalQty}<span style="font-size:14px;font-weight:400;color:var(--text2)"> 份（${sessionOrders.length}人）</span></div></div>`;
+
+    // Accepted: show qty breakdown prominently
+    if(status === 'accepted' || status === 'closed'){
+      const totalFee = sessionOrders.reduce((s,o)=>s+o.fee,0);
+      html += `<div style="display:flex;gap:12px;margin-bottom:12px;padding:10px 14px;background:${status==='accepted'?'var(--green-light)':'var(--red-light)'};border-radius:8px;align-items:center">`;
+      html += `<div style="flex:1"><div style="font-size:12px;color:var(--text2)">${status==='accepted'?'已接单份数':'关闭前份数'}</div><div style="font-size:22px;font-weight:700;color:${status==='accepted'?'var(--green)':'var(--red)'}">${totalQty}<span style="font-size:13px;font-weight:400"> 份</span></div></div>`;
+      html += `<div style="flex:1"><div style="font-size:12px;color:var(--text2)">点餐人数</div><div style="font-size:22px;font-weight:700">${sessionOrders.length}<span style="font-size:13px;font-weight:400"> 人</span></div></div>`;
+      html += `<div style="flex:1"><div style="font-size:12px;color:var(--text2)">合计费用</div><div style="font-size:22px;font-weight:700;color:var(--primary)">¥${totalFee.toFixed(0)}</div></div>`;
+      html += `</div>`;
+    }
+
+    html += `<div style="margin-bottom:12px"><div style="font-size:13px;color:var(--text2);margin-bottom:6px">部门分布（点击数字穿透明细）</div>`;
+    DEPTS.forEach(d => {
+      if(deptDist[d.id].count > 0){
+        html += `<div class="dept-row"><span class="dept-name">${d.name}</span><span class="dept-count" onclick="showDeptDetail('${mt.type}','${today}',${d.id})">${deptDist[d.id].qty}份 / ${deptDist[d.id].count}人</span></div>`;
+      }
+    });
+    if(sessionOrders.length === 0) html += `<div style="font-size:13px;color:var(--text2)">暂无点餐</div>`;
+    html += `</div>`;
+
+    if(todayIsWeekend){
+      const hName2 = getHolidayName(today);
+      html += `<div style="font-size:13px;color:var(--text2);margin-top:8px">${hName2 ? hName2 + '（法定节假日）' : '非工作日'}，食堂不开放，无需接单/关闭操作</div>`;
+    } else if(status === 'closed' && session){
+      html += `<div class="h5-meal-reason" style="margin:8px 0">关闭原因：${session.closeReason}</div>`;
+      html += `<div style="margin-top:8px"><button class="btn btn-outline btn-sm" onclick="reopenMeal('${mt.type}')">撤销关闭，改为接单</button></div>`;
+    } else if(status === 'accepted'){
+      const isAuto = session && session.status !== 'accepted' && isAutoAccepted(mt.type);
+      if(isAuto){
+        html += `<div style="font-size:12px;color:var(--text2);margin-top:6px">系统自动接单（管理员未操作，距开餐不足 ${state.config.autoAcceptHours} 小时）</div>`;
+        html += `<div style="display:flex;gap:8px;margin-top:6px">`;
+        html += `<button class="btn btn-success btn-sm" onclick="acceptMeal('${mt.type}')" style="font-size:12px">确认接单</button>`;
+        html += `<button class="btn btn-danger btn-sm" onclick="closeMealPrompt('${mt.type}')" style="font-size:12px">关闭</button>`;
+        html += `</div>`;
+      } else {
+        html += `<div style="margin-top:8px"><button class="btn btn-outline btn-sm" onclick="closeMealPrompt('${mt.type}')">撤销接单，改为关闭</button></div>`;
+      }
+    } else if(status === 'locked'){
+      const autoAcceptRemain = (function(){
+        const now=getNow(); const [sh,sm]=getConfigTime(mt.type).split(':').map(Number);
+        const autoMin=(sh - state.config.autoAcceptHours)*60+sm; const nowMin=now.getHours()*60+now.getMinutes();
+        return autoMin - nowMin;
+      })();
+      html += `<div style="display:flex;gap:8px;margin-top:8px">`;
+      html += `<button class="btn btn-success btn-sm" onclick="acceptMeal('${mt.type}')">接单</button>`;
+      html += `<button class="btn btn-danger btn-sm" onclick="closeMealPrompt('${mt.type}')">关闭（需填原因）</button>`;
+      html += `</div>`;
+      if(autoAcceptRemain > 0){
+        html += `<div style="font-size:12px;color:var(--text2);margin-top:4px">${Math.floor(autoAcceptRemain/60)}时${autoAcceptRemain%60}分后未操作将自动接单</div>`;
+      }
+    } else if(status === 'open'){
+      html += `<div style="font-size:13px;color:var(--text2);margin-top:8px">尚未截单，截单后可进行接单/关闭操作（截单时间 ${getCutoffTime(mt.type)}）</div>`;
+    }
+    html += `</div>`;
+  });
+  return html;
+}
+
+/* ============================================================
+ * RENDER - Admin Query
+ * ============================================================ */
+function renderAdminQuery(){
+  const f = state.queryFilter;
+  let html = '';
+  html += `<div class="card">`;
+  html += `<div class="filter-bar">`;
+  html += `<div class="filter-item"><label>查询维度</label><select id="qType" onchange="updateQueryType(this.value)">`;
+  html += `<option value="all" ${f.queryType==='all'?'selected':''}>全部部门</option>`;
+  html += `<option value="dept" ${f.queryType==='dept'?'selected':''}>按部门</option>`;
+  html += `<option value="user" ${f.queryType==='user'?'selected':''}>按用户</option>`;
+  html += `</select></div>`;
+  if(f.queryType === 'dept'){
+    html += `<div class="filter-item"><label>部门</label><select id="qDept">`;
+    DEPTS.forEach(d=>html+=`<option value="${d.id}" ${f.deptId==d.id?'selected':''}>${d.name}</option>`);
+    html += `</select></div>`;
+  }
+  if(f.queryType === 'user'){
+    html += `<div class="filter-item"><label>用户</label><select id="qUser">`;
+    USERS.filter(u=>u.role==='employee').forEach(u=>html+=`<option value="${u.id}" ${f.userId==u.id?'selected':''}>${u.name}（${deptName(u.deptId)}）</option>`);
+    html += `</select></div>`;
+  }
+  html += `<div class="filter-item"><label>起始日期</label><input type="date" id="qStart" value="${f.start}"></div>`;
+  html += `<div class="filter-item"><label>结束日期</label><input type="date" id="qEnd" value="${f.end}"></div>`;
+  html += `<div class="filter-item"><button class="btn btn-primary btn-sm" onclick="execQuery()">查询</button></div>`;
+  html += `</div></div>`;
+
+  // Status filter chips
+  html += `<div class="filter-chips">`;
+  ADMIN_FILTERS.forEach(flt => {
+    html += `<div class="f-chip ${f.statusFilter===flt.key?'active':''}" onclick="setAdminStatusFilter('${flt.key}')">${flt.label}</div>`;
+  });
+  html += `</div>`;
+
+  // Results
+  const results = computeQueryResults();
+  if(!results) return html;
+
+  // Summary stats
+  html += `<div class="stats-grid">`;
+  html += `<div class="stat-card sc-blue" onclick="setQueryDetailFilter('count')"><div class="stat-label">点餐数量</div><div class="stat-value">${results.totalQty}<span class="stat-unit"> 份</span></div></div>`;
+  html += `<div class="stat-card sc-green" onclick="setQueryDetailFilter('settled')"><div class="stat-label">已结算费用</div><div class="stat-value">¥${results.settledFee.toFixed(0)}</div></div>`;
+  html += `<div class="stat-card sc-orange" onclick="setQueryDetailFilter('unsettled')"><div class="stat-label">未结算费用</div><div class="stat-value">¥${results.unsettledFee.toFixed(0)}</div></div>`;
+  html += `<div class="stat-card sc-purple" onclick="setQueryDetailFilter('total')"><div class="stat-label">合计费用</div><div class="stat-value">¥${results.totalFee.toFixed(0)}</div></div>`;
+  html += `</div>`;
+
+  // Dimension summary table
+  if(f.queryType === 'all' || f.queryType === 'dept'){
+    html += `<div class="card"><div class="section-title">部门汇总（点击数字穿透明细）</div>`;
+    html += `<div class="table-scroll"><table class="data-table"><thead><tr><th>部门</th><th class="clickable">点餐份数</th><th>人数</th><th class="clickable">已结算费用</th><th class="clickable">未结算费用</th><th class="clickable">合计</th></tr></thead><tbody>`;
+    results.deptRows.forEach(r => {
+      html += `<tr><td>${r.name}</td>`;
+      html += `<td><span class="clickable" onclick="showQueryDetail({deptId:${r.id},filter:'count'})">${r.qty} 份</span></td>`;
+      html += `<td>${r.count}人</td>`;
+      html += `<td><span class="clickable" onclick="showQueryDetail({deptId:${r.id},filter:'settled'})">¥${r.settledFee.toFixed(0)}</span></td>`;
+      html += `<td><span class="clickable" onclick="showQueryDetail({deptId:${r.id},filter:'unsettled'})">¥${r.unsettledFee.toFixed(0)}</span></td>`;
+      html += `<td><span class="clickable" onclick="showQueryDetail({deptId:${r.id},filter:'total'})">¥${r.totalFee.toFixed(0)}</span></td></tr>`;
+    });
+    html += `<tr style="font-weight:600;background:var(--primary-light)"><td>合计</td><td>${results.totalQty} 份</td><td>${results.totalCount}人</td><td>¥${results.settledFee.toFixed(0)}</td><td>¥${results.unsettledFee.toFixed(0)}</td><td>¥${results.totalFee.toFixed(0)}</td></tr>`;
+    html += `</tbody></table></div></div>`;
+  } else {
+    html += `<div class="card"><div class="section-title">用户汇总</div>`;
+    html += `<div class="table-scroll"><table class="data-table"><thead><tr><th>姓名</th><th>部门</th><th class="clickable">点餐份数</th><th>次数</th><th class="clickable">已结算</th><th class="clickable">未结算</th><th class="clickable">合计</th></tr></thead><tbody>`;
+    results.userRows.forEach(r => {
+      html += `<tr><td>${r.name}</td><td>${r.deptName}</td>`;
+      html += `<td><span class="clickable" onclick="showQueryDetail({userId:${r.id},filter:'count'})">${r.qty} 份</span></td>`;
+      html += `<td>${r.count}次</td>`;
+      html += `<td><span class="clickable" onclick="showQueryDetail({userId:${r.id},filter:'settled'})">¥${r.settledFee.toFixed(0)}</span></td>`;
+      html += `<td><span class="clickable" onclick="showQueryDetail({userId:${r.id},filter:'unsettled'})">¥${r.unsettledFee.toFixed(0)}</span></td>`;
+      html += `<td><span class="clickable" onclick="showQueryDetail({userId:${r.id},filter:'total'})">¥${r.totalFee.toFixed(0)}</span></td></tr>`;
+    });
+    html += `</tbody></table></div></div>`;
+  }
+
+  // Detail list with settlement marking
+  const detailFilter = state.detailModalFilter;
+  let detailOrders = results.filteredOrders;
+  let detailLabel = '全部记录';
+  if(detailFilter){
+    if(detailFilter.filter === 'settled'){ detailOrders = detailOrders.filter(o=>o.status==='active' && o.settled); detailLabel='已结算记录'; }
+    else if(detailFilter.filter === 'unsettled'){ detailOrders = detailOrders.filter(o=>o.status==='active' && !o.settled); detailLabel='未结算记录'; }
+    else if(detailFilter.filter === 'count'){ detailOrders = detailOrders.filter(o=>o.status==='active'); detailLabel='有效点餐'; }
+    else if(detailFilter.filter === 'total'){ detailLabel='全部明细'; }
+    if(detailFilter.deptId){ detailOrders = detailOrders.filter(o=>o.deptId===detailFilter.deptId); detailLabel += '（'+deptName(detailFilter.deptId)+'）'; }
+    if(detailFilter.userId){ detailOrders = detailOrders.filter(o=>o.userId===detailFilter.userId); detailLabel += '（'+userName(detailFilter.userId)+'）'; }
+  }
+
+  html += `<div class="card"><div class="section-title">明细清单（${detailLabel}）— 可勾选进行结算打标</div>`;
+  if(detailOrders.length === 0){
+    html += `<div class="h5-empty">暂无记录</div>`;
+  } else {
+    html += `<div style="margin-bottom:8px;display:flex;gap:8px">`;
+    html += `<button class="btn btn-success btn-sm" onclick="batchSettle(true)">批量结算</button>`;
+    html += `<button class="btn btn-outline btn-sm" onclick="batchSettle(false)">批量取消结算</button>`;
+    html += `</div>`;
+    html += `<div class="table-scroll"><table class="data-table"><thead><tr><th style="width:32px"><input type="checkbox" id="selectAll" onchange="toggleAll(this)"></th><th>日期</th><th>姓名</th><th>部门</th><th>餐次</th><th>单价</th><th>份数</th><th>费用</th><th>状态</th><th>结算</th><th>操作</th></tr></thead><tbody>`;
+    detailOrders.sort((a,b)=>b.mealDate.localeCompare(a.mealDate)||b.id-a.id).forEach(o => {
+      const ds = getOrderDisplayStatus(o);
+      const sBadge = ds==='cancelled' ? '<span class="badge badge-cancelled">已取消</span>' :
+        '<span class="badge badge-accepted">有效</span>';
+      const settBadge = ds==='cancelled' ? '-' :
+        o.settled ? '<span class="badge badge-settled">已结算</span>' : '<span class="badge badge-unsettled">未结算</span>';
+      const canSettle = ds !== 'cancelled';
+      html += `<tr><td><input type="checkbox" class="order-cb" value="${o.id}" ${!canSettle?'disabled':''}></td>`;
+      html += `<td>${o.mealDate}</td><td>${o.userName}</td><td>${o.deptName}</td><td>${o.mealName}</td><td>¥${o.price}</td><td>${o.quantity}</td><td>¥${o.fee}</td>`;
+      html += `<td>${sBadge}</td><td>${settBadge}</td>`;
+      html += `<td>${canSettle?`<button class="btn ${o.settled?'btn-outline':'btn-success'} btn-sm" onclick="toggleSettle(${o.id})">${o.settled?'取消结算':'结算'}</button>`:'-'}</td>`;
+      html += `</tr>`;
+    });
+    html += `</tbody></table></div>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+function computeQueryResults(){
+  const f = state.queryFilter;
+  let orders = state.orders;
+  if(f.start) orders = orders.filter(o => o.mealDate >= f.start);
+  if(f.end) orders = orders.filter(o => o.mealDate <= f.end);
+  if(f.queryType === 'dept' && f.deptId) orders = orders.filter(o => o.deptId == f.deptId);
+  if(f.queryType === 'user' && f.userId) orders = orders.filter(o => o.userId == f.userId);
+
+  // Apply status filter
+  let filteredOrders;
+  if(f.statusFilter === 'all') filteredOrders = orders;
+  else if(f.statusFilter === 'ordered') filteredOrders = orders.filter(o=>o.status==='active' && !o.settled);
+  else if(f.statusFilter === 'settled') filteredOrders = orders.filter(o=>o.status==='active' && o.settled);
+  else if(f.statusFilter === 'unsettled') filteredOrders = orders.filter(o=>o.status==='active' && !o.settled);
+  else if(f.statusFilter === 'cancelled') filteredOrders = orders.filter(o=>o.status==='void' || o.status==='cancelled');
+  else filteredOrders = orders;
+
+  // Stats based on active orders only (for fee stats)
+  const activeOrders = orders.filter(o => o.status === 'active');
+  const totalQty = activeOrders.reduce((s,o)=>s+o.quantity,0);
+  const totalCount = activeOrders.length;
+  const settledFee = activeOrders.filter(o=>o.settled).reduce((s,o)=>s+o.fee,0);
+  const unsettledFee = activeOrders.filter(o=>!o.settled).reduce((s,o)=>s+o.fee,0);
+  const totalFee = settledFee + unsettledFee;
+
+  // Dept rows (based on active orders)
+  const deptRows = DEPTS.map(d => {
+    const dOrders = activeOrders.filter(o=>o.deptId===d.id);
+    return {
+      id:d.id, name:d.name,
+      count:dOrders.length,
+      qty:dOrders.reduce((s,o)=>s+o.quantity,0),
+      settledFee:dOrders.filter(o=>o.settled).reduce((s,o)=>s+o.fee,0),
+      unsettledFee:dOrders.filter(o=>!o.settled).reduce((s,o)=>s+o.fee,0),
+      totalFee:dOrders.reduce((s,o)=>s+o.fee,0),
+    };
+  }).filter(r => f.queryType==='all' || r.count > 0 || (f.queryType==='dept' && r.id==f.deptId));
+
+  // User rows
+  const userRows = USERS.filter(u=>u.role==='employee').map(u => {
+    const uOrders = activeOrders.filter(o=>o.userId===u.id);
+    return {
+      id:u.id, name:u.name, deptName:deptName(u.deptId),
+      count:uOrders.length,
+      qty:uOrders.reduce((s,o)=>s+o.quantity,0),
+      settledFee:uOrders.filter(o=>o.settled).reduce((s,o)=>s+o.fee,0),
+      unsettledFee:uOrders.filter(o=>!o.settled).reduce((s,o)=>s+o.fee,0),
+      totalFee:uOrders.reduce((s,o)=>s+o.fee,0),
+    };
+  }).filter(r => r.count > 0);
+
+  return {totalQty, totalCount, settledFee, unsettledFee, totalFee, deptRows, userRows, filteredOrders};
+}
+
+/* ============================================================
+ * RENDER - Admin Config
+ * ============================================================ */
+function renderAdminConfig(){
+  const c = state.config;
+  let html = `<div class="card config-form">`;
+  html += `<div class="config-section"><h4>餐次时间设置</h4>`;
+  MEAL_TYPES.forEach(mt => {
+    html += `<div class="config-row"><label>${mt.icon} ${mt.name}开餐时间</label><input type="time" id="cfg-${mt.type}-time" value="${c[mt.type].time}"></div>`;
+  });
+  html += `<div class="config-row"><label>截单时长（距开餐前）</label><select id="cfg-cutoff"><option value="1" ${c.cutoffHours==1?'selected':''}>1小时</option><option value="2" ${c.cutoffHours==2?'selected':''}>2小时</option><option value="3" ${c.cutoffHours==3?'selected':''}>3小时</option><option value="4" ${c.cutoffHours==4?'selected':''}>4小时</option><option value="6" ${c.cutoffHours==6?'selected':''}>6小时</option></select></div>`;
+  html += `<div class="config-row"><label>自动接单时间（距开餐前）</label><select id="cfg-autoaccept"><option value="1" ${c.autoAcceptHours==1?'selected':''}>1小时</option><option value="2" ${c.autoAcceptHours==2?'selected':''}>2小时</option><option value="3" ${c.autoAcceptHours==3?'selected':''}>3小时</option><option value="4" ${c.autoAcceptHours==4?'selected':''}>4小时</option><option value="6" ${c.autoAcceptHours==6?'selected':''}>6小时</option></select></div>`;
+  html += `</div>`;
+
+  html += `<div class="config-section"><h4>套餐价格设置</h4>`;
+  MEAL_TYPES.forEach(mt => {
+    html += `<div class="config-row"><label>${mt.icon} ${mt.name}价格</label><input type="number" id="cfg-${mt.type}-price" value="${c[mt.type].price}" min="0" step="0.5"></div>`;
+  });
+  html += `</div>`;
+
+  html += `<div class="config-section"><h4>关单原因模板</h4>`;
+  html += `<div class="reason-tags" id="reasonTags">`;
+  c.closeReasons.forEach((r,i) => {
+    html += `<span class="reason-tag">${r}<span class="remove" onclick="removeReason(${i})">×</span></span>`;
+  });
+  html += `</div>`;
+  html += `<div style="margin-top:8px;display:flex;gap:8px"><input type="text" id="newReason" placeholder="输入新原因模板" style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;flex:1"><button class="btn btn-primary btn-sm" onclick="addReason()">添加</button></div>`;
+  html += `</div>`;
+
+  // 工作日历管理
+  html += `<div class="config-section"><h4>工作日历管理（法定节假日 / 调休补班）</h4>`;
+  html += `<p style="font-size:12px;color:var(--text2);margin-bottom:10px">系统按国务院发布的法定节假日安排判断工作日：节假日和周末食堂不开放，调休补班日（周六日上班）正常开放。支持管理员手动增删日期，用于年度安排更新或临时调整。</p>`;
+
+  // 节假日列表
+  html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">`;
+  html += `<span style="font-size:13px;font-weight:600;color:var(--red)">法定节假日（${HOLIDAY_CALENDAR.holidays.length}天，食堂不开放）</span>`;
+  html += `<span style="font-size:12px;color:var(--text2)">点击日期可删除</span>`;
+  html += `</div>`;
+  html += `<div style="max-height:180px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:8px;margin-bottom:12px">`;
+  // 按月份分组显示
+  const holByMonth = {};
+  HOLIDAY_CALENDAR.holidays.forEach(h => {
+    const ym = h.substring(0,7);
+    if(!holByMonth[ym]) holByMonth[ym] = [];
+    holByMonth[ym].push(h);
+  });
+  Object.keys(holByMonth).sort().forEach(ym => {
+    html += `<div style="margin-bottom:6px"><span style="font-size:12px;color:var(--text2);font-weight:600">${ym}</span> `;
+    holByMonth[ym].forEach(h => {
+      const nm = getHolidayName(h);
+      html += `<span class="reason-tag" style="color:var(--red);border-color:var(--red-light)">${h.substring(5)}${nm?'（'+nm+'）':''}<span class="remove" onclick="removeHolidayDate('${h}')">×</span></span>`;
+    });
+    html += `</div>`;
+  });
+  html += `</div>`;
+  html += `<div style="display:flex;gap:8px;margin-bottom:16px">`;
+  html += `<input type="date" id="newHolidayDate" style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;flex:1">`;
+  html += `<input type="text" id="newHolidayName" placeholder="节假日名称（如：元旦）" style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;flex:1">`;
+  html += `<button class="btn btn-primary btn-sm" onclick="addHolidayDate()">添加节假日</button>`;
+  html += `</div>`;
+
+  // 补班日列表
+  html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">`;
+  html += `<span style="font-size:13px;font-weight:600;color:var(--orange)">调休补班日（${HOLIDAY_CALENDAR.extraWorkdays.length}天，周六日上班食堂开放）</span>`;
+  html += `<span style="font-size:12px;color:var(--text2)">点击日期可删除</span>`;
+  html += `</div>`;
+  html += `<div style="border:1px solid var(--border);border-radius:8px;padding:8px;margin-bottom:12px">`;
+  if(HOLIDAY_CALENDAR.extraWorkdays.length === 0){
+    html += `<span style="font-size:12px;color:var(--text3)">暂无补班日</span>`;
+  } else {
+    HOLIDAY_CALENDAR.extraWorkdays.forEach(w => {
+      html += `<span class="reason-tag" style="color:var(--orange);border-color:var(--orange-light)">${w}<span class="remove" onclick="removeExtraWorkday('${w}')">×</span></span>`;
+    });
+  }
+  html += `</div>`;
+  html += `<div style="display:flex;gap:8px">`;
+  html += `<input type="date" id="newExtraWorkday" style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;flex:1">`;
+  html += `<button class="btn btn-primary btn-sm" onclick="addExtraWorkday()">添加补班日</button>`;
+  html += `</div>`;
+  html += `</div>`;
+
+  html += `<div style="margin-top:16px"><button class="btn btn-primary" style="width:auto;padding:10px 32px" onclick="saveConfig()">保存配置</button></div>`;
+  html += `</div>`;
+  return html;
+}
+
+/* 工作日历管理操作 */
+function removeHolidayDate(dateStr){
+  const idx = HOLIDAY_CALENDAR.holidays.indexOf(dateStr);
+  if(idx >= 0){
+    HOLIDAY_CALENDAR.holidays.splice(idx, 1);
+    delete HOLIDAY_CALENDAR.holidayNames[dateStr];
+    toast('已删除节假日：'+dateStr);
+    render();
+  }
+}
+function addHolidayDate(){
+  const d = document.getElementById('newHolidayDate').value;
+  const nm = document.getElementById('newHolidayName').value.trim();
+  if(!d){ toast('请选择日期'); return; }
+  if(HOLIDAY_CALENDAR.holidays.includes(d)){ toast('该日期已在节假日列表中'); return; }
+  HOLIDAY_CALENDAR.holidays.push(d);
+  if(nm) HOLIDAY_CALENDAR.holidayNames[d] = nm;
+  toast('已添加节假日：'+d+(nm?'（'+nm+'）':''));
+  render();
+}
+function removeExtraWorkday(dateStr){
+  const idx = HOLIDAY_CALENDAR.extraWorkdays.indexOf(dateStr);
+  if(idx >= 0){
+    HOLIDAY_CALENDAR.extraWorkdays.splice(idx, 1);
+    toast('已删除补班日：'+dateStr);
+    render();
+  }
+}
+function addExtraWorkday(){
+  const d = document.getElementById('newExtraWorkday').value;
+  if(!d){ toast('请选择日期'); return; }
+  if(HOLIDAY_CALENDAR.extraWorkdays.includes(d)){ toast('该日期已在补班日列表中'); return; }
+  HOLIDAY_CALENDAR.extraWorkdays.push(d);
+  toast('已添加补班日：'+d);
+  render();
+}
+
+/* ============================================================
+ * RENDER - User Management
+ * ============================================================ */
+function renderUserMgmt(){
+  let html = '';
+  html += `<div class="card">`;
+  html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">`;
+  html += `<div class="section-title" style="margin:0">员工账号管理（${USERS.filter(u=>u.role==='employee').length}人）</div>`;
+  html += `<button class="btn btn-primary btn-sm" onclick=\"openUserEdit(null)\">+ 新增员工</button>`;
+  html += `</div>`;
+
+  // Dept filter
+  html += `<div class="filter-chips">`;
+  html += `<div class="f-chip ${state.userMgmtFilter===undefined||state.userMgmtFilter==='all'?'active':''}" onclick="filterUserMgmt('all')">全部部门</div>`;
+  DEPTS.forEach(d=>{
+    html += `<div class="f-chip ${state.userMgmtFilter===d.id?'active':''}" onclick="filterUserMgmt(${d.id})">${d.name}</div>`;
+  });
+  html += `</div>`;
+
+  let empList = USERS.filter(u=>u.role==='employee');
+  if(state.userMgmtFilter && state.userMgmtFilter !== 'all'){
+    empList = empList.filter(u=>u.deptId === state.userMgmtFilter);
+  }
+
+  html += `<div class="table-scroll"><table class="data-table"><thead><tr><th style="width:32px">序号</th><th>姓名</th><th>部门</th><th>状态</th><th>操作</th></tr></thead><tbody>`;
+  empList.forEach((u,i)=>{
+    const dName = deptName(u.deptId);
+    const isDisabled = u.disabled === true;
+    html += `<tr>`;
+    html += `<td>${i+1}</td>`;
+    html += `<td>${u.name}</td>`;
+    html += `<td>${dName}</td>`;
+    html += `<td>${isDisabled?'<span class=\"badge badge-cancelled\">已禁用</span>':'<span class=\"badge badge-accepted\">正常</span>'}</td>`;
+    html += `<td>`;
+    html += `<button class="btn btn-outline btn-sm" onclick="openUserEdit(${u.id})" style="margin-right:6px">编辑</button>`;
+    if(u.id !== state.currentUserId){
+      html += `<button class="btn ${isDisabled?'btn-success':'btn-danger'} btn-sm" onclick="toggleUserStatus(${u.id})">${isDisabled?'启用':'禁用'}</button>`;
+    }
+    html += `</td>`;
+    html += `</tr>`;
+  });
+  html += `</tbody></table></div>`;
+
+  // Dept management section
+  html += `<div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border)">`;
+  html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">`;
+  html += `<div class="section-title" style="margin:0">部门管理</div>`;
+  html += `<button class="btn btn-primary btn-sm" onclick="openDeptEdit(null)">+ 新增部门</button>`;
+  html += `</div>`;
+  html += `<div class="table-scroll"><table class="data-table"><thead><tr><th style="width:32px">序号</th><th>部门名称</th><th>员工数</th><th>操作</th></tr></thead><tbody>`;
+  DEPTS.forEach((d,i)=>{
+    const count = USERS.filter(u=>u.deptId===d.id && u.role==='employee').length;
+    html += `<tr><td>${i+1}</td><td>${d.name}</td><td>${count}人</td>`;
+    html += `<td><button class="btn btn-outline btn-sm" onclick="openDeptEdit(${d.id})" style="margin-right:6px">编辑</button>`;
+    if(count === 0) html += `<button class="btn btn-danger btn-sm" onclick="deleteDept(${d.id})">删除</button>`;
+    else html += `<span style="font-size:12px;color:var(--text3)">${count}人在使用，不可删除</span>`;
+    html += `</td></tr>`;
+  });
+  html += `</tbody></table></div>`;
+  html += `</div>`;
+  html += `</div>`;
+  return html;
+}
+
+/* User edit modal */
+function openUserEdit(userId){
+  const isNew = userId === null;
+  const u = isNew ? {name:'', deptId:1, disabled:false} : USERS.find(x=>x.id===userId);
+  if(!u) return;
+  let html = `<div class="modal-head"><h3>${isNew?'新增员工':'编辑员工'}</h3><button class="modal-close" onclick="closeModal()">×</button></div>`;
+  html += `<div class="modal-body">`;
+  html += `<div style="display:flex;flex-direction:column;gap:12px">`;
+  html += `<div><label style="font-size:13px;color:var(--text2);display:block;margin-bottom:4px">姓名</label>`;
+  html += `<input type="text" id="ue_name" value="${u.name}" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px"></div>`;
+  html += `<div><label style="font-size:13px;color:var(--text2);display:block;margin-bottom:4px">部门</label>`;
+  html += `<select id="ue_dept" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px">`;
+  DEPTS.forEach(d=>{ html += `<option value="${d.id}" ${u.deptId===d.id?'selected':''}>${d.name}</option>`; });
+  html += `</select></div>`;
+  if(!isNew){
+    html += `<div><label style="font-size:13px;color:var(--text2);display:block;margin-bottom:4px">账号状态</label>`;
+    html += `<select id="ue_disabled" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px">`;
+    html += `<option value="0" ${!u.disabled?'selected':''}>正常</option>`;
+    html += `<option value="1" ${u.disabled?'selected':''}>已禁用</option>`;
+    html += `</select></div>`;
+  }
+  html += `</div>`;
+  html += `</div>`;
+  html += `<div class="modal-foot"><button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveUser(${userId})">保存</button></div>`;
+  document.getElementById('modal').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function saveUser(userId){
+  const name = document.getElementById('ue_name').value.trim();
+  const deptId = parseInt(document.getElementById('ue_dept').value);
+  if(!name){ toast('请输入姓名'); return; }
+  if(userId === null){
+    const newId = Math.max(0, ...USERS.map(u=>u.id)) + 1;
+    USERS.push({id:newId, name, deptId, role:'employee', disabled:false});
+    toast('已添加员工：'+name);
+  } else {
+    const u = USERS.find(x=>x.id===userId);
+    if(u){
+      u.name = name;
+      u.deptId = deptId;
+      const disEl = document.getElementById('ue_disabled');
+      if(disEl) u.disabled = disEl.value === '1';
+      toast('已更新：'+name);
+    }
+  }
+  closeModal();
+  render();
+}
+
+function toggleUserStatus(userId){
+  const u = USERS.find(x=>x.id===userId);
+  if(u){
+    u.disabled = !u.disabled;
+    toast(u.disabled ? '已禁用 '+u.name : '已启用 '+u.name);
+    render();
+  }
+}
+
+function filterUserMgmt(val){
+  state.userMgmtFilter = val;
+  render();
+}
+
+/* Dept edit modal */
+function openDeptEdit(deptId){
+  const isNew = deptId === null;
+  const d = isNew ? {name:''} : DEPTS.find(x=>x.id===deptId);
+  if(!d) return;
+  let html = `<div class="modal-head"><h3>${isNew?'新增部门':'编辑部门'}</h3><button class="modal-close" onclick="closeModal()">×</button></div>`;
+  html += `<div class="modal-body">`;
+  html += `<label style="font-size:13px;color:var(--text2);display:block;margin-bottom:4px">部门名称</label>`;
+  html += `<input type="text" id="de_name" value="${d.name}" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px">`;
+  html += `</div>`;
+  html += `<div class="modal-foot"><button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveDept(${deptId})">保存</button></div>`;
+  document.getElementById('modal').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function saveDept(deptId){
+  const name = document.getElementById('de_name').value.trim();
+  if(!name){ toast('请输入部门名称'); return; }
+  if(deptId === null){
+    const newId = Math.max(0, ...DEPTS.map(d=>d.id)) + 1;
+    DEPTS.push({id:newId, name, sort_order:DEPTS.length});
+    toast('已添加部门：'+name);
+  } else {
+    const d = DEPTS.find(x=>x.id===deptId);
+    if(d){ d.name = name; toast('已更新部门：'+name); }
+  }
+  closeModal();
+  render();
+}
+
+function deleteDept(deptId){
+  const count = USERS.filter(u=>u.deptId===deptId && u.role==='employee').length;
+  if(count > 0){ toast('该部门下有员工，无法删除'); return; }
+  const idx = DEPTS.findIndex(d=>d.id===deptId);
+  if(idx >= 0){
+    DEPTS.splice(idx, 1);
+    toast('已删除部门');
+    render();
+  }
+}
+
+/* ============================================================
+ * EVENT HANDLERS
+ * ============================================================ */
+function switchRole(r){
+  state.role = r;
+  if(r === 'employee'){ state.currentUserId = 1; state.page = 'home'; }
+  else { state.currentUserId = 9; state.page = 'dashboard'; }
+  state.activeStatFilter = null;
+  state.detailModalFilter = null;
+  render();
+}
+
+function goPage(p){
+  state.page = p;
+  state.activeStatFilter = null;
+  state.detailModalFilter = null;
+  render();
+}
+
+function setSimTime(v){
+  state.simHour = v === '' ? null : parseInt(v);
+  MEAL_TYPES.forEach(mt => {
+    const session = getTodaySession(mt.type);
+    if(session){
+      const computed = computeMealStatus(mt.type);
+      if(session.status === 'open' && computed === 'locked') session.status = 'locked';
+      if(session.status === 'locked' && computed === 'open') session.status = 'open';
+      // auto-accept: if within autoAcceptHours and admin hasn't explicitly acted
+      if(session.status === 'locked' && isAutoAccepted(mt.type)){
+        // don't change session.status, let getSessionStatus compute it as 'accepted'
+        // but mark it so dashboard can distinguish
+      }
+    }
+  });
+  render();
+}
+
+/* Quantity stepper */
+function adjustQty(mealType, delta){
+  const el = document.getElementById('qty-'+mealType);
+  const feeEl = document.getElementById('qtyfee-'+mealType);
+  if(!el) return;
+  let qty = parseInt(el.textContent) + delta;
+  if(qty < 1) qty = 1;
+  if(qty > 10) qty = 10;
+  el.textContent = qty;
+  const price = state.config[mealType].price;
+  feeEl.textContent = '¥' + (price * qty).toFixed(0);
+}
+
+/* Switch between employee users (for demo purposes) */
+function cycleUser(){
+  const empUsers = USERS.filter(u=>u.role==='employee');
+  const idx = empUsers.findIndex(u=>u.id===state.currentUserId);
+  const next = empUsers[(idx+1) % empUsers.length];
+  state.currentUserId = next.id;
+  toast('已切换到 ' + next.name);
+  render();
+}
+
+function placeOrder(mealType){
+  const selDate = getSelectedDate();
+  const price = state.config[mealType].price;
+  const qtyEl = document.getElementById('qty-'+mealType);
+  const quantity = qtyEl ? parseInt(qtyEl.textContent) : 1;
+  const user = USERS.find(u=>u.id===state.currentUserId);
+  const existing = state.orders.find(o => o.userId===state.currentUserId && o.mealDate===selDate && o.mealType===mealType);
+  if(existing){
+    existing.price = price;
+    existing.quantity = quantity;
+    existing.fee = price * quantity;
+    toast('已更新点餐（'+quantity+'份）');
+  } else {
+    state.orders.push({
+      id: Math.max(0, ...state.orders.map(o=>o.id)) + 1,
+      userId: state.currentUserId,
+      userName: user.name,
+      deptId: user.deptId,
+      deptName: deptName(user.deptId),
+      mealDate: selDate,
+      mealType: mealType,
+      mealName: getMealName(mealType),
+      price: price,
+      quantity: quantity,
+      fee: price * quantity,
+      status: 'active',
+      settled: false,
+      settledAt: null,
+      createdAt: formatDate(new Date()) + ' ' + String(getNow().getHours()).padStart(2,'0')+':'+String(getNow().getMinutes()).padStart(2,'0'),
+    });
+    toast(selDate + ' ' + getMealName(mealType) + ' 点餐成功（'+quantity+'份，¥'+(price*quantity)+'）');
+  }
+  render();
+}
+
+function cancelOrder(orderId){
+  state.orders = state.orders.filter(o => o.id !== orderId);
+  toast('已取消点餐');
+  render();
+}
+
+/* Employee records */
+function queryRecords(){
+  state.recordFilter.start = document.getElementById('recStart').value;
+  state.recordFilter.end = document.getElementById('recEnd').value;
+  state.activeStatFilter = null;
+  render();
+}
+
+function setStatusFilter(key){
+  state.recordFilter.statusFilter = key;
+  state.activeStatFilter = null;
+  render();
+}
+
+function filterStat(type){
+  state.activeStatFilter = (state.activeStatFilter === type) ? null : type;
+  render();
+}
+
+/* Admin query */
+function updateQueryType(t){
+  state.queryFilter.queryType = t;
+  state.queryFilter.deptId = '';
+  state.queryFilter.userId = '';
+  state.detailModalFilter = null;
+  render();
+}
+
+function setAdminStatusFilter(key){
+  state.queryFilter.statusFilter = key;
+  state.detailModalFilter = null;
+  render();
+}
+
+function execQuery(){
+  state.queryFilter.start = document.getElementById('qStart').value;
+  state.queryFilter.end = document.getElementById('qEnd').value;
+  if(state.queryFilter.queryType === 'dept') state.queryFilter.deptId = document.getElementById('qDept').value;
+  if(state.queryFilter.queryType === 'user') state.queryFilter.userId = document.getElementById('qUser').value;
+  state.detailModalFilter = null;
+  render();
+}
+
+function showQueryDetail(filter){
+  state.detailModalFilter = filter;
+  render();
+  setTimeout(()=>{ window.scrollTo({top:document.body.scrollHeight, behavior:'smooth'}); }, 100);
+}
+
+function setQueryDetailFilter(filter){
+  state.detailModalFilter = {filter: filter};
+  render();
+  setTimeout(()=>{ window.scrollTo({top:document.body.scrollHeight, behavior:'smooth'}); }, 100);
+}
+
+function toggleSettle(orderId){
+  const o = state.orders.find(x=>x.id===orderId);
+  if(o){
+    o.settled = !o.settled;
+    o.settledAt = o.settled ? formatDate(new Date())+' '+String(getNow().getHours()).padStart(2,'0')+':'+String(getNow().getMinutes()).padStart(2,'0') : null;
+    toast(o.settled?'已标记为已结算':'已取消结算');
+    render();
+  }
+}
+
+function batchSettle(settled){
+  const cbs = document.querySelectorAll('.order-cb:checked:not(:disabled)');
+  if(cbs.length === 0){ toast('请先勾选记录'); return; }
+  cbs.forEach(cb => {
+    const o = state.orders.find(x=>x.id==cb.value);
+    if(o){
+      o.settled = settled;
+      o.settledAt = settled ? formatDate(new Date())+' '+String(getNow().getHours()).padStart(2,'0')+':'+String(getNow().getMinutes()).padStart(2,'0') : null;
+    }
+  });
+  toast(`已${settled?'结算':'取消结算'} ${cbs.length} 条记录`);
+  render();
+}
+
+function toggleAll(cb){
+  document.querySelectorAll('.order-cb:not(:disabled)').forEach(c => c.checked = cb.checked);
+}
+
+function acceptMeal(mealType){
+  const session = getTodaySession(mealType);
+  if(session){
+    session.status = 'accepted';
+    toast(getMealName(mealType)+'已接单');
+    render();
+  }
+}
+
+function closeMealPrompt(mealType){
+  const reasons = state.config.closeReasons;
+  let html = `<div class="modal-head"><h3>关闭${getMealName(mealType)}</h3><button class="modal-close" onclick="closeModal()">×</button></div>`;
+  html += `<div class="modal-body"><p style="margin-bottom:12px">请选择或输入关闭原因（必填）：</p>`;
+  reasons.forEach((r,i) => {
+    html += `<div class="cb-row"><input type="radio" name="closeReason" id="cr${i}" value="${r}"><label for="cr${i}">${r}</label></div>`;
+  });
+  html += `<div style="margin-top:8px"><input type="text" id="customReason" placeholder="或自定义原因" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px"></div>`;
+  html += `</div>`;
+  html += `<div class="modal-foot"><button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-danger" onclick="confirmCloseMeal('${mealType}')">确认关闭</button></div>`;
+  document.getElementById('modal').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function confirmCloseMeal(mealType){
+  const checked = document.querySelector('input[name="closeReason"]:checked');
+  const custom = document.getElementById('customReason').value.trim();
+  const reason = custom || (checked ? checked.value : '');
+  if(!reason){ toast('请选择或输入关闭原因'); return; }
+  const session = getTodaySession(mealType);
+  if(session){
+    session.status = 'closed';
+    session.closeReason = reason;
+    state.orders.forEach(o => {
+      if(o.mealDate === session.mealDate && o.mealType === mealType && o.status === 'active') o.status = 'void';
+    });
+    toast(getMealName(mealType)+'已关闭，原因：'+reason);
+  }
+  closeModal();
+  render();
+}
+
+function reopenMeal(mealType){
+  const session = getTodaySession(mealType);
+  if(session){
+    session.status = 'accepted';
+    session.closeReason = null;
+    state.orders.forEach(o => {
+      if(o.mealDate === session.mealDate && o.mealType === mealType && o.status === 'void') o.status = 'active';
+    });
+    toast(getMealName(mealType)+'已改为接单');
+    render();
+  }
+}
+
+function showDeptDetail(mealType, date, deptId){
+  const orders = state.orders.filter(o => o.mealDate===date && o.mealType===mealType && o.deptId===deptId && o.status==='active');
+  let html = `<div class="modal-head"><h3>${deptName(deptId)} - ${getMealName(mealType)} - ${date} 点餐明细</h3><button class="modal-close" onclick="closeModal()">×</button></div>`;
+  html += `<div class="modal-body">`;
+  if(orders.length === 0){
+    html += `<div class="h5-empty">暂无记录</div>`;
+  } else {
+    html += `<div class="table-scroll"><table class="data-table"><thead><tr><th>姓名</th><th>部门</th><th>单价</th><th>份数</th><th>费用</th><th>结算状态</th></tr></thead><tbody>`;
+    orders.forEach(o => {
+      html += `<tr><td>${o.userName}</td><td>${o.deptName}</td><td>¥${o.price}</td><td>${o.quantity}</td><td>¥${o.fee}</td><td>${o.settled?'<span class="badge badge-settled">已结算</span>':'<span class="badge badge-unsettled">未结算</span>'}</td></tr>`;
+    });
+    html += `</tbody></table></div>`;
+  }
+  html += `</div>`;
+  html += `<div class="modal-foot"><button class="btn btn-outline" onclick="closeModal()">关闭</button></div>`;
+  document.getElementById('modal').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function removeReason(i){ state.config.closeReasons.splice(i, 1); render(); }
+function addReason(){
+  const input = document.getElementById('newReason');
+  const val = input.value.trim();
+  if(val && !state.config.closeReasons.includes(val)){ state.config.closeReasons.push(val); input.value=''; render(); }
+}
+function saveConfig(){
+  MEAL_TYPES.forEach(mt => {
+    const t = document.getElementById(`cfg-${mt.type}-time`).value;
+    const p = parseFloat(document.getElementById(`cfg-${mt.type}-price`).value);
+    if(t) state.config[mt.type].time = t;
+    if(p >= 0) state.config[mt.type].price = p;
+  });
+  state.config.cutoffHours = parseInt(document.getElementById('cfg-cutoff').value);
+  state.config.autoAcceptHours = parseInt(document.getElementById('cfg-autoaccept').value);
+  toast('配置已保存');
+  render();
+}
+
+function closeModal(){ document.getElementById('modalOverlay').classList.remove('show'); }
+
+function updateCountdowns(){
+  if(state.role !== 'employee' || state.page !== 'home') return;
+  if(!isToday(getSelectedDate())) return; // only show countdown for today
+  MEAL_TYPES.forEach(mt => {
+    const el = document.getElementById('cd-'+mt.type);
+    if(el){
+      const remain = getCutoffRemaining(mt.type);
+      el.textContent = formatCountdown(remain);
+      if(remain <= 0) render();
+    }
+  });
+}
+
+function bindEvents(){
+  document.getElementById('modalOverlay').onclick = function(e){
+    if(e.target === this) closeModal();
+  };
+}
+
+// Start
+init();
+</script>
+</body>
+</html>
