@@ -459,6 +459,7 @@ let state = {
     dinner: {time:'18:00', price:8},
     cutoffHours: 3,
     autoAcceptHours: 2,
+    maxAdvanceDays: 30,
     closeReasons: [...CLOSE_REASONS],
   },
   // orders: [{id, userId, deptId, mealDate, mealType, price, quantity, fee, status:'active'|'void'|'cancelled', settled:bool, settledAt, createdAt}]
@@ -603,6 +604,13 @@ function generateMockData(){
 function formatDate(d){
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
+function getMaxAdvanceDate(){
+  const d = new Date();
+  d.setHours(0,0,0,0);
+  d.setDate(d.getDate() + (state.config.maxAdvanceDays || 30));
+  return formatDate(d);
+}
+
 function getNow(){
   if(state.simHour !== null){
     const d = new Date();
@@ -852,6 +860,7 @@ function renderEmpHome(){
   const selDate = getSelectedDate();
   const myOrders = state.orders.filter(o => o.userId === state.currentUserId && o.mealDate === selDate && o.status === 'active');
   const isPast = selDate < formatDate(new Date());
+  const isBeyondLimit = selDate > getMaxAdvanceDate();
   const isTodayDate = isToday(selDate);
   const isWknd = isNonWorkday(selDate);
   let html = '';
@@ -860,7 +869,7 @@ function renderEmpHome(){
   html += renderCalendar(selDate);
 
   // Quick order bar (only show for today or future, not weekend)
-  if(!isPast && !isWknd){
+  if(!isPast && !isWknd && !isBeyondLimit){
     html += `<div class="h5-quick-bar">`;
     html += `<div class="h5-quick-btn" onclick="openBatchOrder()" style="flex:1"><span class="qb-icon">⚡</span>一键点餐</div>`;
     html += `</div>`;
@@ -869,6 +878,8 @@ function renderEmpHome(){
   // Hint
   if(isPast){
     html += `<div class="h5-hint" style="background:#f5f5f5;color:var(--text2)">该日期已过，仅供查看历史记录。</div>`;
+  } else if(isBeyondLimit){
+    html += `<div class="h5-hint" style="background:#f5f5f5;color:var(--text2)">超出提前点餐上限（最多提前 ${state.config.maxAdvanceDays} 天），暂不可点餐。</div>`;
   } else if(isWknd){
     const hName = getHolidayName(selDate);
     const dayType = getDayType(selDate);
@@ -902,7 +913,7 @@ function renderEmpHome(){
     if(isClosed && session && session.closeReason){
       html += `<div class="h5-meal-reason">关闭原因：${session.closeReason}</div>`;
     }
-    if(canOrder && !isPast){
+    if(canOrder && !isPast && !isBeyondLimit){
       const curQty = myOrder ? myOrder.quantity : 1;
       html += `<div class="qty-row">`;
       html += `<span class="qty-label">份数</span>`;
@@ -919,6 +930,8 @@ function renderEmpHome(){
         html += `<button class="h5-btn h5-btn-primary" onclick="placeOrder('${mt.type}')">立即点餐</button>`;
       }
       html += `</div>`;
+    } else if(isBeyondLimit){
+      html += `<div class="h5-actions"><button class="h5-btn h5-btn-outline" disabled>超出提前点餐上限</button></div>`;
     } else if(isWknd){
       const hName = getHolidayName(selDate);
       html += `<div class="h5-actions"><button class="h5-btn h5-btn-outline" disabled>${hName || '非工作日'}，食堂不开放</button></div>`;
@@ -1000,6 +1013,7 @@ function renderCalendar(selDate){
     const dateStr = formatDate(new Date(year, month, d));
     const isToday = dateStr === todayStr;
     const isPast = dateStr < todayStr;
+    const isBeyondLimit = dateStr > getMaxAdvanceDate();
     const isSelected = dateStr === selDate;
     const dayType = getDayType(dateStr); // workday / holiday / weekendRest / extraWorkday
     const isNonWork = dayType === 'holiday' || dayType === 'weekendRest';
@@ -1007,14 +1021,14 @@ function renderCalendar(selDate){
     let classes = 'h5-cal-day';
     if(isToday) classes += ' today';
     if(isSelected) classes += ' selected';
-    if(isPast) classes += ' cal-past';
+    if(isPast || isBeyondLimit) classes += ' cal-past';
     if(dayType === 'holiday') classes += ' cal-holiday';
     else if(dayType === 'weekendRest') classes += ' cal-weekend';
     else if(dayType === 'extraWorkday') classes += ' cal-extrawork';
     const hName = getHolidayName(dateStr);
     const tooltip = dayType === 'holiday' ? (hName ? hName + '（法定节假日）' : '法定节假日') :
       dayType === 'weekendRest' ? '周末' :
-      dayType === 'extraWorkday' ? '调休补班日' : '';
+      dayType === 'extraWorkday' ? '调休补班日' : isBeyondLimit ? '超出提前点餐上限' : '';
     html += `<div class="${classes}" onclick="selectDate('${dateStr}')" ${tooltip ? `title="${tooltip}"` : ''}>`;
     html += `<span>${d}</span>`;
     if(dayType === 'holiday'){
@@ -1062,6 +1076,8 @@ function selectDate(dateStr){
  * BATCH ORDER (Quick order for week/month workdays)
  * ============================================================ */
 function getWorkdays(days){
+  const maxAdv = state.config.maxAdvanceDays || 30;
+  if(days > maxAdv) days = maxAdv;
   const today = new Date();
   today.setHours(0,0,0,0);
   const todayStr = formatDate(today);
@@ -1106,10 +1122,12 @@ function getWorkdaysForPreset(preset){
 }
 
 function openBatchOrder(){
-  openBatchOrderWithDays(30);
+  openBatchOrderWithDays(state.config.maxAdvanceDays || 30);
 }
 
 function openBatchOrderWithDays(defaultDays){
+  const maxAdv = state.config.maxAdvanceDays || 30;
+  if(defaultDays > maxAdv) defaultDays = maxAdv;
   const dates = getWorkdays(defaultDays);
   if(dates.length === 0){ toast('未来'+defaultDays+'天内没有可点餐的工作日'); return; }
   state._batchDates = dates;
@@ -1141,12 +1159,16 @@ function _renderBatchOrderModal(dates, rangeLabel, defaultDays){
   html += `<div style="margin-bottom:14px">`;
   html += `<div style="font-size:13px;color:var(--text2);margin-bottom:8px">选择范围（当前：${rangeLabel}）</div>`;
   html += `<div style="display:flex;gap:6px;flex-wrap:wrap">`;
-  [{label:'本周',preset:'week'},{label:'本月',preset:'month'},{label:'10天',preset:'10'},{label:'20天',preset:'20'},{label:'30天',preset:'30'}].forEach(opt => {
+  const maxAdv = state.config.maxAdvanceDays || 30;
+  const presetOpts = [{label:'本周',preset:'week'},{label:'本月',preset:'month'}];
+  [10,20,30].forEach(d => { if(d <= maxAdv) presetOpts.push({label:d+'天',preset:String(d)}); });
+  if(maxAdv > 30) presetOpts.push({label:maxAdv+'天',preset:String(maxAdv)});
+  presetOpts.forEach(opt => {
     html += `<button class="btn btn-sm btn-outline" onclick="reloadBatchOrder('${opt.preset}')">${opt.label}</button>`;
   });
   html += `</div>`;
   html += `<div style="display:flex;gap:6px;align-items:center;margin-top:8px">`;
-  html += `<input type="number" id="batchCustomDays" value="${defaultDays||30}" min="1" max="60" style="width:70px;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:14px">`;
+  html += `<input type="number" id="batchCustomDays" value="${defaultDays||maxAdv}" min="1" max="${maxAdv}" style="width:70px;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:14px">`;
   html += `<span style="font-size:13px;color:var(--text2)">天以内工作日</span>`;
   html += `<button class="btn btn-sm btn-primary" onclick="reloadBatchOrder(document.getElementById('batchCustomDays').value)">确定</button>`;
   html += `</div>`;
@@ -1239,7 +1261,9 @@ function reloadBatchOrder(preset){
     state._batchDates = dates;
     _renderBatchOrderModal(dates, rangeLabel);
   } else {
-    const days = parseInt(preset) || 30;
+    const maxAdv = state.config.maxAdvanceDays || 30;
+    let days = parseInt(preset) || maxAdv;
+    if(days > maxAdv) days = maxAdv;
     const dates = getWorkdays(days);
     if(dates.length === 0){ toast('未来'+days+'天内没有可点餐的工作日'); return; }
     state._batchDates = dates;
@@ -1886,6 +1910,7 @@ function renderAdminConfig(){
   });
   html += `<div class="config-row"><label>截单时长（距开餐前）</label><select id="cfg-cutoff"><option value="1" ${c.cutoffHours==1?'selected':''}>1小时</option><option value="2" ${c.cutoffHours==2?'selected':''}>2小时</option><option value="3" ${c.cutoffHours==3?'selected':''}>3小时</option><option value="4" ${c.cutoffHours==4?'selected':''}>4小时</option><option value="6" ${c.cutoffHours==6?'selected':''}>6小时</option></select></div>`;
   html += `<div class="config-row"><label>自动接单时间（距开餐前）</label><select id="cfg-autoaccept"><option value="1" ${c.autoAcceptHours==1?'selected':''}>1小时</option><option value="2" ${c.autoAcceptHours==2?'selected':''}>2小时</option><option value="3" ${c.autoAcceptHours==3?'selected':''}>3小时</option><option value="4" ${c.autoAcceptHours==4?'selected':''}>4小时</option><option value="6" ${c.autoAcceptHours==6?'selected':''}>6小时</option></select></div>`;
+  html += `<div class="config-row"><label>提前点餐上限（距今天数）</label><select id="cfg-maxadvance"><option value="7" ${c.maxAdvanceDays==7?'selected':''}>7天</option><option value="14" ${c.maxAdvanceDays==14?'selected':''}>14天</option><option value="20" ${c.maxAdvanceDays==20?'selected':''}>20天</option><option value="30" ${c.maxAdvanceDays==30?'selected':''}>30天</option><option value="45" ${c.maxAdvanceDays==45?'selected':''}>45天</option><option value="60" ${c.maxAdvanceDays==60?'selected':''}>60天</option></select></div>`;
   html += `</div>`;
 
   html += `<div class="config-section"><h4>套餐价格设置</h4>`;
@@ -2230,6 +2255,7 @@ function placeOrder(mealType){
   const selDate = getSelectedDate();
   // Past dates and non-workdays: reject
   if(selDate < formatDate(new Date())){ toast('该日期已过，无法点餐'); return; }
+  if(selDate > getMaxAdvanceDate()){ toast('超出提前点餐上限（'+state.config.maxAdvanceDays+'天），无法点餐'); return; }
   if(isNonWorkday(selDate)){ toast('非工作日，食堂不开放'); return; }
   const price = state.config[mealType].price;
   const qtyEl = document.getElementById('qty-'+mealType);
@@ -2488,6 +2514,7 @@ function saveConfig(){
   });
   state.config.cutoffHours = parseInt(document.getElementById('cfg-cutoff').value);
   state.config.autoAcceptHours = parseInt(document.getElementById('cfg-autoaccept').value);
+  state.config.maxAdvanceDays = parseInt(document.getElementById('cfg-maxadvance').value);
   toast('配置已保存');
   render();
 }
