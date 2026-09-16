@@ -830,8 +830,9 @@ function renderEmpHome(){
     const canOrder = status === 'open';
     const isClosed = status === 'closed';
     const mealPassed = isMealTimePassed(mt.type, selDate); // 开餐时间已过
-    const statusText = isWknd ? (getDayType(selDate) === 'holiday' && getHolidayName(selDate) ? getHolidayName(selDate)+'·不开放' : '食堂不开放') : isPast ? '已过' : (status==='accepted' && mealPassed) ? '就餐时间已过，已核销' : {open:'可点餐',locked:'已截单',accepted:'已接单',closed:'已关闭'}[status];
-    const statusClass = isPast ? 'st-locked' : (status==='accepted' && mealPassed) ? 'st-locked' : {open:'st-open',locked:'st-locked',accepted:'st-accepted',closed:'st-closed'}[status];
+    const pastOrdered = isPast && myOrder; // 过去日期且有订餐
+    const statusText = isWknd ? (getDayType(selDate) === 'holiday' && getHolidayName(selDate) ? getHolidayName(selDate)+'·不开放' : '食堂不开放') : pastOrdered ? '已核销 ×'+myOrder.quantity+'份' : isPast ? '未订餐' : (status==='accepted' && mealPassed) ? '就餐时间已过，已核销' : {open:'可点餐',locked:'已截单',accepted:'已接单',closed:'已关闭'}[status];
+    const statusClass = pastOrdered ? 'st-accepted' : isPast ? 'st-locked' : (status==='accepted' && mealPassed) ? 'st-locked' : {open:'st-open',locked:'st-locked',accepted:'st-accepted',closed:'st-closed'}[status];
 
     html += `<div class="h5-meal ${myOrder?'ordered':''} ${isClosed?'closed':''}">`;
     html += `<div class="h5-meal-head"><div><div class="h5-meal-name">${mt.icon} ${mt.name}</div><div class="h5-meal-time">开餐 ${getConfigTime(mt.type)} · 截单 ${getCutoffTime(mt.type)}</div></div></div>`;
@@ -865,7 +866,11 @@ function renderEmpHome(){
       const hName = getHolidayName(selDate);
       html += `<div class="h5-actions"><button class="h5-btn h5-btn-outline" disabled>${hName || '非工作日'}，食堂不开放</button></div>`;
     } else if(isPast){
-      html += `<div class="h5-actions"><button class="h5-btn h5-btn-outline" disabled>该日期已过，无法点餐</button></div>`;
+      if(myOrder){
+        html += `<div class="h5-actions"><button class="h5-btn h5-btn-outline" disabled>已核销 ×${myOrder.quantity}份 ¥${myOrder.fee}</button></div>`;
+      } else {
+        html += `<div class="h5-actions"><button class="h5-btn h5-btn-outline" disabled>该日期已过，未订餐</button></div>`;
+      }
     } else if(isClosed){
       html += `<div class="h5-actions"><button class="h5-btn h5-btn-outline" disabled>本餐已关闭</button></div>`;
     } else if(status === 'accepted' && mealPassed){
@@ -880,10 +885,11 @@ function renderEmpHome(){
 
   // Selected date summary
   if(myOrders.length > 0){
-    html += `<div class="h5-today-sum"><div class="ts-title">${selDate} 已点餐</div>`;
+    html += `<div class="h5-today-sum"><div class="ts-title">${selDate} ${isPast?'点餐记录（已核销）':'已点餐'}</div>`;
     myOrders.forEach(o => {
       const ds = getOrderDisplayStatus(o);
       const sBadge = ds==='cancelled' ? '<span class="badge badge-cancelled">已取消</span>' :
+        isPast ? '<span class="badge badge-accepted">已核销</span>' :
         (getSessionStatus(o.mealType, o.mealDate)==='accepted' && isMealTimePassed(o.mealType, o.mealDate)) ? '<span class="badge badge-accepted">已核销</span>' :
         getSessionStatus(o.mealType, o.mealDate)==='accepted' ? '<span class="badge badge-accepted">已接单</span>' :
         '<span class="badge badge-locked">已截单</span>';
@@ -1560,31 +1566,39 @@ function renderAdminQuery(){
     if(detailFilter.userId){ detailOrders = detailOrders.filter(o=>o.userId===detailFilter.userId); detailLabel += '（'+userName(detailFilter.userId)+'）'; }
   }
 
-  html += `<div class="card"><div class="section-title">明细清单（${detailLabel}）— 可勾选进行结算打标</div>`;
+  html += `<div class="card"><div class="section-title">明细清单（${detailLabel}）</div>`;
+  // 月度结算面板
+  const todayMonth = formatDate(new Date()).substring(0,7);
+  html += `<div style="background:var(--primary-light);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:14px">`;
+  html += `<div style="font-size:14px;font-weight:600;margin-bottom:8px">月度结算</div>`;
+  html += `<div style="font-size:12px;color:var(--text2);margin-bottom:10px">选择历史月份，对该月所有有效记录一次性结算</div>`;
+  html += `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">`;
+  html += `<input type="month" id="settleMonth" value="${todayMonth}" style="padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px">`;
+  html += `<button class="btn btn-success btn-sm" onclick="monthlySettle(true)">结算该月</button>`;
+  html += `<button class="btn btn-outline btn-sm" onclick="monthlySettle(false)">取消该月结算</button>`;
+  html += `</div>`;
+  // 预览选中月份的结算状态
+  html += `<div id="settlePreview" style="font-size:12px;color:var(--text2);margin-top:8px"></div>`;
+  html += `</div>`;
   if(detailOrders.length === 0){
     html += `<div class="h5-empty">暂无记录</div>`;
   } else {
-    html += `<div style="margin-bottom:8px;display:flex;gap:8px">`;
-    html += `<button class="btn btn-success btn-sm" onclick="batchSettle(true)">批量结算</button>`;
-    html += `<button class="btn btn-outline btn-sm" onclick="batchSettle(false)">批量取消结算</button>`;
-    html += `</div>`;
-    html += `<div class="table-scroll"><table class="data-table"><thead><tr><th style="width:32px"><input type="checkbox" id="selectAll" onchange="toggleAll(this)"></th><th>日期</th><th>姓名</th><th>部门</th><th>餐次</th><th>单价</th><th>份数</th><th>费用</th><th>状态</th><th>结算</th><th>操作</th></tr></thead><tbody>`;
+    html += `<div class="table-scroll"><table class="data-table"><thead><tr><th>日期</th><th>姓名</th><th>部门</th><th>餐次</th><th>单价</th><th>份数</th><th>费用</th><th>状态</th><th>结算</th></tr></thead><tbody>`;
     detailOrders.sort((a,b)=>b.mealDate.localeCompare(a.mealDate)||b.id-a.id).forEach(o => {
       const ds = getOrderDisplayStatus(o);
       const sBadge = ds==='cancelled' ? '<span class="badge badge-cancelled">已取消</span>' :
         '<span class="badge badge-accepted">有效</span>';
       const settBadge = ds==='cancelled' ? '-' :
         o.settled ? '<span class="badge badge-settled">已结算</span>' : '<span class="badge badge-unsettled">未结算</span>';
-      const canSettle = ds !== 'cancelled';
-      html += `<tr><td><input type="checkbox" class="order-cb" value="${o.id}" ${!canSettle?'disabled':''}></td>`;
-      html += `<td>${o.mealDate}</td><td>${o.userName}</td><td>${o.deptName}</td><td>${o.mealName}</td><td>¥${o.price}</td><td>${o.quantity}</td><td>¥${o.fee}</td>`;
+      html += `<tr><td>${o.mealDate}</td><td>${o.userName}</td><td>${o.deptName}</td><td>${o.mealName}</td><td>¥${o.price}</td><td>${o.quantity}</td><td>¥${o.fee}</td>`;
       html += `<td>${sBadge}</td><td>${settBadge}</td>`;
-      html += `<td>${canSettle?`<button class="btn ${o.settled?'btn-outline':'btn-success'} btn-sm" onclick="toggleSettle(${o.id})">${o.settled?'取消结算':'结算'}</button>`:'-'}</td>`;
       html += `</tr>`;
     });
     html += `</tbody></table></div>`;
   }
   html += `</div>`;
+  // 月度结算预览脚本
+  html += `<script>updateSettlePreview();document.getElementById('settleMonth').addEventListener('change',updateSettlePreview);</script>`;
   return html;
 }
 
@@ -2093,32 +2107,40 @@ function setQueryDetailFilter(filter){
   setTimeout(()=>{ window.scrollTo({top:document.body.scrollHeight, behavior:'smooth'}); }, 100);
 }
 
-function toggleSettle(orderId){
-  const o = state.orders.find(x=>x.id===orderId);
-  if(o){
-    o.settled = !o.settled;
-    o.settledAt = o.settled ? formatDate(new Date())+' '+String(getNow().getHours()).padStart(2,'0')+':'+String(getNow().getMinutes()).padStart(2,'0') : null;
-    toast(o.settled?'已标记为已结算':'已取消结算');
-    render();
-  }
-}
+function toggleSettle(orderId){ /* 已废弃：单条结算已移除，改为月度结算 */ }
 
-function batchSettle(settled){
-  const cbs = document.querySelectorAll('.order-cb:checked:not(:disabled)');
-  if(cbs.length === 0){ toast('请先勾选记录'); return; }
-  cbs.forEach(cb => {
-    const o = state.orders.find(x=>x.id==cb.value);
-    if(o){
-      o.settled = settled;
-      o.settledAt = settled ? formatDate(new Date())+' '+String(getNow().getHours()).padStart(2,'0')+':'+String(getNow().getMinutes()).padStart(2,'0') : null;
-    }
+function batchSettle(settled){ /* 已废弃：勾选批量结算已移除，改为月度结算 */ }
+
+function monthlySettle(settled){
+  const monthVal = document.getElementById('settleMonth').value;
+  if(!monthVal){ toast('请选择月份'); return; }
+  const [y,m] = monthVal.split('-').map(Number);
+  const monthStart = `${monthVal}-01`;
+  const monthEnd = formatDate(new Date(y, m, 0));
+  const targets = state.orders.filter(o => o.status === 'active' && o.mealDate >= monthStart && o.mealDate <= monthEnd);
+  if(targets.length === 0){ toast('该月份无有效记录'); return; }
+  const now = formatDate(new Date())+' '+String(getNow().getHours()).padStart(2,'0')+':'+String(getNow().getMinutes()).padStart(2,'0');
+  targets.forEach(o => {
+    o.settled = settled;
+    o.settledAt = settled ? now : null;
   });
-  toast(`已${settled?'结算':'取消结算'} ${cbs.length} 条记录`);
+  toast(`已${settled?'结算':'取消结算'} ${monthVal} 共 ${targets.length} 条记录`);
   render();
 }
 
-function toggleAll(cb){
-  document.querySelectorAll('.order-cb:not(:disabled)').forEach(c => c.checked = cb.checked);
+function updateSettlePreview(){
+  const el = document.getElementById('settlePreview');
+  if(!el) return;
+  const monthVal = document.getElementById('settleMonth').value;
+  if(!monthVal){ el.textContent=''; return; }
+  const [y,m] = monthVal.split('-').map(Number);
+  const monthStart = `${monthVal}-01`;
+  const monthEnd = formatDate(new Date(y, m, 0));
+  const targets = state.orders.filter(o => o.status === 'active' && o.mealDate >= monthStart && o.mealDate <= monthEnd);
+  const settledCount = targets.filter(o=>o.settled).length;
+  const unsettledCount = targets.length - settledCount;
+  const totalFee = targets.reduce((s,o)=>s+o.fee, 0);
+  el.innerHTML = `该月有效记录 <b>${targets.length}</b> 条，已结算 <b style="color:var(--green)">${settledCount}</b> 条，未结算 <b style="color:var(--orange)">${unsettledCount}</b> 条，合计 ¥${totalFee.toFixed(0)}`;
 }
 
 function acceptMeal(mealType){
