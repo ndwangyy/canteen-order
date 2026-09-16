@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>食堂点餐系统 - 产品需求文档（PRD）</title>
+<style>
+  :root {
+    --primary: #1a73e8;
+    --primary-dark: #1557b0;
+    --primary-light: #e8f0fe;
+    --text-main: #1f1f1f;
+    --text-secondary: #5f6368;
+    --bg: #ffffff;
+    --bg-soft: #f8f9fa;
+    --border: #dadce0;
+    --green: #1e8e3e;
+    --orange: #e8710a;
+    --red: #d93025;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, "Microsoft YaHei", "PingFang SC", sans-serif; color: var(--text-main); background: var(--bg-soft); line-height: 1.8; font-size: 15px; }
+  .doc-container { max-width: 900px; margin: 0 auto; background: var(--bg); padding: 60px 56px; box-shadow: 0 1px 6px rgba(0,0,0,.08); }
+  .cover { text-align: center; padding: 80px 0 60px; border-bottom: 2px solid var(--primary); margin-bottom: 40px; }
+  .cover h1 { font-size: 32px; color: var(--primary-dark); margin-bottom: 16px; letter-spacing: 2px; }
+  .cover .subtitle { font-size: 22px; color: var(--text-secondary); margin-bottom: 32px; }
+  .cover .meta { display: inline-flex; gap: 32px; font-size: 14px; color: var(--text-secondary); }
+  .cover .meta strong { color: var(--text-main); }
+  .toc { background: var(--primary-light); border-radius: 12px; padding: 24px 32px; margin-bottom: 40px; }
+  .toc h2 { font-size: 16px; color: var(--primary-dark); margin-bottom: 12px; }
+  .toc ol { list-style: none; counter-reset: toc; columns: 2; }
+  .toc li { counter-increment: toc; padding: 4px 0; break-inside: avoid; }
+  .toc li::before { content: counter(toc) ". "; color: var(--primary); font-weight: 600; margin-right: 8px; }
+  .toc a { color: var(--text-main); text-decoration: none; }
+  h2.section-title { font-size: 22px; color: var(--primary-dark); border-left: 4px solid var(--primary); padding-left: 12px; margin: 40px 0 16px; }
+  h3 { font-size: 17px; color: var(--text-main); margin: 24px 0 10px; }
+  h4 { font-size: 15px; color: var(--text-secondary); margin: 16px 0 8px; font-weight: 600; }
+  p { margin-bottom: 10px; }
+  ul, ol { margin: 8px 0 16px 24px; }
+  li { margin-bottom: 6px; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 14px; }
+  th { background: var(--primary); color: #fff; padding: 10px 12px; text-align: left; font-weight: 500; }
+  td { border: 1px solid var(--border); padding: 8px 12px; }
+  tr:nth-child(even) td { background: var(--bg-soft); }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+  .tag-high { background: #fce8e6; color: var(--red); }
+  .tag-mid { background: #fef7e0; color: var(--orange); }
+  .tag-low { background: #e6f4ea; color: var(--green); }
+  .tag-p0 { background: #fce8e6; color: var(--red); }
+  .tag-p1 { background: #fef7e0; color: var(--orange); }
+  .tag-p2 { background: #e6f4ea; color: var(--green); }
+  .module-card { border: 1px solid var(--border); border-radius: 8px; padding: 20px 24px; margin: 16px 0; }
+  .module-card h3 { margin-top: 0; }
+  .field-table td:first-child { font-weight: 600; white-space: nowrap; }
+  .status-flow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 16px 0; }
+  .status-node { padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 500; }
+  .status-arrow { color: var(--text-secondary); font-size: 18px; }
+  .sn-1 { background: #e8f0fe; color: var(--primary-dark); }
+  .sn-2 { background: #fef7e0; color: var(--orange); }
+  .sn-3 { background: #e6f4ea; color: var(--green); }
+  .sn-4 { background: #fce8e6; color: var(--red); }
+  .sn-5 { background: #f3e8fd; color: #9334e6; }
+  .api-card { border: 1px solid var(--border); border-radius: 8px; margin: 12px 0; overflow: hidden; }
+  .api-card .api-head { background: var(--bg-soft); padding: 10px 16px; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+  .api-method { padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+  .method-get { background: #e6f4ea; color: var(--green); }
+  .method-post { background: #e8f0fe; color: var(--primary); }
+  .method-put { background: #fef7e0; color: var(--orange); }
+  .method-del { background: #fce8e6; color: var(--red); }
+  .api-body { padding: 12px 16px; }
+  .api-body table { margin: 0; }
+  .code-block { background: #1e1e1e; color: #d4d4d4; padding: 16px; border-radius: 8px; font-family: "Consolas", "Courier New", monospace; font-size: 13px; overflow-x: auto; margin: 12px 0; }
+  .footer { text-align: center; padding: 32px 0; color: var(--text-secondary); font-size: 13px; border-top: 1px solid var(--border); margin-top: 40px; }
+  @media print { .doc-container { box-shadow: none; max-width: 100%; } }
+</style>
+</head>
+<body>
+<div class="doc-container">
+
+<!-- 封面 -->
+<div class="cover">
+  <h1>食堂点餐系统</h1>
+  <div class="subtitle">产品需求文档（PRD）</div>
+  <div class="meta">
+    <span>版本：<strong>V1.0</strong></span>
+    <span>日期：<strong>2026-09-15</strong></span>
+    <span>状态：<strong>初始稿</strong></span>
+  </div>
+</div>
+
+<!-- 目录 -->
+<div class="toc">
+  <h2>目录</h2>
+  <ol>
+    <li><a href="#s1">产品概述</a></li>
+    <li><a href="#s2">系统架构</a></li>
+    <li><a href="#s3">功能模块详述——员工端</a></li>
+    <li><a href="#s4">功能模块详述——管理端</a></li>
+    <li><a href="#s5">业务规则与状态机</a></li>
+    <li><a href="#s6">数据模型</a></li>
+    <li><a href="#s7">接口规范</a></li>
+    <li><a href="#s8">界面规范</a></li>
+    <li><a href="#s9">非功能性需求</a></li>
+    <li><a href="#s10">迭代规划</a></li>
+  </ol>
+</div>
+
+<!-- 1. 产品概述 -->
+<h2 class="section-title" id="s1">1 产品概述</h2>
+
+<h3>1.1 产品定位</h3>
+<p>面向单位内部食堂的轻量级点餐管理系统，通过"提前点餐 → 按需备餐 → 自动核销 → 费用结算"的闭环流程，解决食材浪费和费用核算不透明的问题。</p>
+
+<h3>1.2 产品目标</h3>
+<table>
+  <tr><th style="width:25%">目标</th><th>衡量指标</th><th style="width:15%">目标值</th></tr>
+  <tr><td>减少食材浪费</td><td>食堂剩余食材报废率</td><td>降低 50% 以上</td></tr>
+  <tr><td>提高备餐精准度</td><td>实际就餐人数 / 预估就餐人数</td><td>≥ 95%</td></tr>
+  <tr><td>费用核算透明</td><td>月度餐费对账耗时</td><td>从 2 天降至 0.5 天</td></tr>
+  <tr><td>操作便捷</td><td>员工完成点餐操作步骤</td><td>≤ 3 步</td></tr>
+</table>
+
+<h3>1.3 用户角色与权限</h3>
+<table>
+  <tr><th style="width:15%">角色</th><th>权限范围</th><th style="width:15%">数据可见性</th></tr>
+  <tr><td>普通员工</td><td>点餐（增删改）、查询个人记录与统计</td><td>仅本人数据</td></tr>
+  <tr><td>食堂管理员</td><td>查看汇总、接单/关单、查询全员/部门/个人、结算打标、参数配置</td><td>全员数据</td></tr>
+  <tr><td>系统管理员</td><td>用户管理、部门管理、系统参数配置</td><td>全员数据</td></tr>
+</table>
+
+<!-- 2. 系统架构 -->
+<h2 class="section-title" id="s2">2 系统架构</h2>
+
+<h3>2.1 技术架构</h3>
+<table>
+  <tr><th style="width:20%">层级</th><th>技术选型</th><th>说明</th></tr>
+  <tr><td>前端</td><td>HTML + CSS + JavaScript（原生）</td><td>零外部 CDN 依赖，内网自包含部署</td></tr>
+  <tr><td>后端</td><td>Python Django</td><td>内网 Web 应用框架，快速开发</td></tr>
+  <tr><td>数据库</td><td>SQLite / MySQL</td><td>小规模用 SQLite，大规模可迁移 MySQL</td></tr>
+  <tr><td>定时任务</td><td>Django + Celery / 系统定时任务</td><td>截单自动锁定、状态自动核销</td></tr>
+  <tr><td>部署方式</td><td>内网部署</td><td>数据不出单位网络</td></tr>
+</table>
+
+<h3>2.2 功能架构图</h3>
+<div class="code-block">
+食堂点餐系统
+├── 员工端
+│   ├── 首页点餐（日历选日期 + 三餐卡片 + 倒计时 + 状态展示）
+│   ├── 一键批量点餐（本周/本月工作日，弹窗确认份数）
+│   ├── 我的记录（日期范围查询 + 统计汇总 + 穿透明细）
+│   └── 个人设置（基本信息查看）
+│
+└── 管理端
+    ├── 运营看板（当日汇总 + 部门分布 + 接单/关单）
+    ├── 查询统计（按用户/部门/全部 + 穿透明细 + 结算打标）
+    └── 系统配置（餐次时间/价格/截单时长/自动接单时间/关闭原因模板）
+</div>
+
+<!-- 3. 功能模块——员工端 -->
+<h2 class="section-title" id="s3">3 功能模块详述——员工端</h2>
+
+<!-- 3.1 首页点餐 -->
+<div class="module-card">
+  <h3>3.1 首页点餐 <span class="tag tag-p0">P0</span></h3>
+  <h4>页面描述</h4>
+  <p>员工登录后进入首页，顶部显示月历组件用于选择日期（含未来日期提前点餐），下方展示选中日期的三餐卡片。每张卡片包含：餐次名称、开餐时间、套餐价格、当前状态、操作按钮。</p>
+
+  <h4>日历组件</h4>
+  <table class="field-table">
+    <tr><th style="width:20%">元素</th><th>说明</th></tr>
+    <tr><td>月份导航</td><td>左右箭头切换月份，显示“2026年10月”格式</td></tr>
+    <tr><td>日期网格</td><td>7列日历网格，每天可点击选择；今天高亮，选中日期蓝色填充</td></tr>
+    <tr><td>点餐标注</td><td>有已点餐记录的日期下方显示“X份”标签</td></tr>
+    <tr><td>非法定工作日</td><td>法定节假日红色底标注名称或“休”；普通周末灰色底标注“休”；调休补班日（周六日上班）橙色标注“班”，正常可点餐</td></tr>
+    <tr><td>过去日期</td><td>可点击查看历史记录，但不可点餐（置灰提示）</td></tr>
+    <tr><td>未来日期</td><td>仅限工作日，可点击选择并提前点餐，截单状态根据该日期的开餐时间计算</td></tr>
+  </table>
+
+  <h4>字段定义</h4>
+  <table class="field-table">
+    <tr><th style="width:20%">字段</th><th>说明</th><th style="width:15%">类型</th></tr>
+    <tr><td>餐次名称</td><td>早餐 / 中餐 / 晚餐</td><td>文本</td></tr>
+    <tr><td>开餐时间</td><td>如 08:00、12:00、18:00（后台可配）</td><td>时间</td></tr>
+    <tr><td>套餐价格</td><td>如 ¥10、¥20、¥15（后台可配）</td><td>金额</td></tr>
+    <tr><td>餐次状态</td><td>可点餐 / 已截单 / 已接单 / 已关闭</td><td>枚举</td></tr>
+    <tr><td>截单倒计时</td><td>距截单剩余时间，格式"X小时Y分Z秒"</td><td>文本</td></tr>
+    <tr><td>关闭原因</td><td>当餐次被关闭时展示管理员填写的原因</td><td>文本</td></tr>
+    <tr><td>操作按钮</td><td>未截单时显示"点餐"/"取消"；已截单后置灰</td><td>按钮</td></tr>
+  </table>
+
+  <h4>交互逻辑</h4>
+  <ul>
+    <li><strong>日历选择</strong>：默认选中今天，点击日期切换；切换月份后日历展示对应月份，选中日期不变</li>
+    <li><strong>初始状态</strong>：三餐卡片纵向排列，选中日期未到截单时间显示“可点餐”（绿色），操作按钮为“点餐”</li>
+    <li><strong>已点餐状态</strong>：卡片高亮，按钮变为“取消点餐”，同时显示已点餐标记</li>
+    <li><strong>截单倒计时</strong>：仅当选中日期为今天时显示实时倒计时；截单时刻到达后自动切换为“已截单”（橙色），按钮置灰</li>
+    <li><strong>未来日期</strong>：未到截单时间，状态为“可点餐”，可提前下单</li>
+    <li><strong>过去日期</strong>：显示“该日期已过”，仅供查看历史记录，不可操作</li>
+    <li><strong>已接单</strong>：管理员接单后，卡片显示“已接单”（绿色勾选标记），表示食堂将正常供餐</li>
+    <li><strong>已关闭</strong>：管理员关单后，卡片显示“已关闭”（红色），下方展示关闭原因文字，无需点击即可看到</li>
+  </ul>
+
+  <h4>业务规则</h4>
+  <ul>
+    <li>同一员工同一餐次同一日期只能有一条有效记录；再次点餐为覆盖操作</li>
+    <li>截单时刻到达后，前端按钮自动置灰，后端拒绝任何增删改请求</li>
+    <li>餐次被关闭后，已点餐记录自动作废，不计入费用统计</li>
+    <li>支持提前为未来日期点餐，每个日期的截单状态独立判断</li>
+    <li>过去日期仅供查看，不可新增/修改/取消点餐</li>
+  </ul>
+</div>
+
+<!-- 3.1b 一键批量点餐 -->
+<div class="module-card">
+  <h3>3.1b 一键批量点餐 <span class="tag tag-p0">P0</span></h3>
+  <h4>页面描述</h4>
+  <p>员工可在首页日历下方一键为本周或本月所有工作日批量点餐，弹窗确认各餐份数后提交，避免逐日重复操作。</p>
+
+  <h4>入口</h4>
+  <p>日历组件下方显示两个按钮：「本周工作日点餐」「本月工作日点餐」。过去日期不显示。</p>
+
+  <h4>弹窗内容</h4>
+  <table class="field-table">
+    <tr><th style="width:25%">区域</th><th>说明</th></tr>
+    <tr><td>日期范围</td><td>显示覆盖的日期范围及工作日天数（如"9/15 至 9/19，共 5 个工作日"）</td></tr>
+    <tr><td>份数设置</td><td>早/中/晚三餐各一行，含餐名、单价、开餐时间，右侧为份数步进器（0~10，0表示不点该餐）</td></tr>
+    <tr><td>预计合计</td><td>实时计算：∑（每餐份数 × 单价）× 工作日天数</td></tr>
+    <tr><td>操作按钮</td><td>取消 / 确认点餐</td></tr>
+  </table>
+
+  <h4>交互逻辑</h4>
+  <ul>
+    <li><strong>法定工作日定义</strong>：按国务院发布的法定节假日安排判断——排除法定节假日和普通周末，包含调休补班日；仅含当天及未来日期</li>
+    <li><strong>"本周"</strong>：当前周的周一至周五中，>= 今天的日期</li>
+    <li><strong>"本月"</strong>：当月所有工作日中，>= 今天的日期</li>
+    <li><strong>非法定工作日规则</strong>：节假日和普通周末食堂不开放，批量点餐自动排除，不生成任何记录；调休补班日（周六日上班）正常开放</li>
+    <li><strong>覆盖逻辑</strong>：已点餐的日期/餐次覆盖更新份数；未点餐的创建新记录</li>
+    <li><strong>跳过规则</strong>：已截单或已关闭的餐次自动跳过，不创建/不覆盖</li>
+    <li><strong>份数为0</strong>：该餐不点餐，不创建记录</li>
+    <li><strong>提交反馈</strong>：Toast提示成功条数及跳过条数</li>
+  </ul>
+</div>
+
+<!-- 3.2 我的记录 -->
+<div class="module-card">
+  <h3>3.2 我的记录 <span class="tag tag-p0">P0</span></h3>
+  <h4>页面描述</h4>
+  <p>员工可按日期范围查询自己的点餐和用餐情况，查看统计汇总和明细清单。</p>
+
+  <h4>页面布局</h4>
+  <table class="field-table">
+    <tr><th style="width:20%">区域</th><th>内容</th></tr>
+    <tr><td>筛选条件区</td><td>起始日期（默认当天）、结束日期（默认当天）、查询按钮</td></tr>
+    <tr><td>统计汇总区</td><td>4个统计卡片：点餐数量（份）、已结算费用（元）、未结算费用（元）、合计费用（元）</td></tr>
+    <tr><td>明细列表区</td><td>表格展示：日期、餐次、价格、状态、结算状态；支持点击统计数字筛选对应明细</td></tr>
+  </table>
+
+  <h4>统计指标定义</h4>
+  <table>
+    <tr><th style="width:20%">指标</th><th>计算口径</th></tr>
+    <tr><td>点餐数量</td><td>所选日期范围内，状态为"已接单"或"已截单（待接单）"的记录条数</td></tr>
+    <tr><td>已结算费用</td><td>所选日期范围内，结算状态为"已结算"且餐次未被关闭的记录费用之和</td></tr>
+    <tr><td>未结算费用</td><td>所选日期范围内，结算状态为"未结算"且餐次未被关闭的记录费用之和</td></tr>
+    <tr><td>合计费用</td><td>已结算费用 + 未结算费用</td></tr>
+  </table>
+
+  <h4>穿透交互</h4>
+  <ul>
+    <li>点击"点餐数量"数字 → 筛选展示所有有效点餐明细</li>
+    <li>点击"已结算费用"数字 → 筛选展示已结算记录明细</li>
+    <li>点击"未结算费用"数字 → 筛选展示未结算记录明细</li>
+    <li>点击"合计费用"数字 → 展示全部明细（恢复无筛选状态）</li>
+  </ul>
+</div>
+
+<!-- 4. 功能模块——管理端 -->
+<h2 class="section-title" id="s4">4 功能模块详述——管理端</h2>
+
+<!-- 4.1 运营看板 -->
+<div class="module-card">
+  <h3>4.1 运营看板 <span class="tag tag-p0">P0</span></h3>
+  <h4>页面描述</h4>
+  <p>管理员登录后的首页，展示当日各餐次的点餐汇总和部门分布，支持接单/关单操作。</p>
+
+  <h4>看板内容</h4>
+  <table class="field-table">
+    <tr><th style="width:20%">区域</th><th>内容</th></tr>
+    <tr><td>餐次汇总卡</td><td>每个餐次一张卡片：餐名、开餐时间、截单时间、点餐总份数、状态（待接单/已接单/已关闭/食堂不开放）</td></tr>
+    <tr><td>份数明细条</td><td>已接单/已关闭状态时，卡片内显示直观数据条：已接单份数（大字）、点餐人数（大字）、合计费用（大字），颜色区分状态（绿色=已接单，红色=已关闭）</td></tr>
+    <tr><td>部门分布表</td><td>每个餐次下方展示按部门的点餐份数分布表，点击数字可穿透至该部门该餐次的明细清单</td></tr>
+    <tr><td>操作区</td><td>每个餐次卡片提供"接单"和"关闭"两个操作按钮；关闭时弹出原因输入框；非工作日无操作按钮</td></tr>
+  </table>
+
+  <h4>接单/关单逻辑</h4>
+  <ul>
+    <li><strong>接单</strong>：点击"接单"按钮，餐次状态变为"已接单"，员工端同步显示</li>
+    <li><strong>关单</strong>：点击"关闭"按钮，弹出原因输入框（必填，支持预设模板如"点餐人数不足""食材供应问题""设备故障"等），提交后餐次状态变为"已关闭"，该餐次所有点餐记录作废，员工端展示关闭原因</li>
+    <li><strong>自动接单</strong>：距开餐前 M 小时（可配置，默认 M=2）管理员仍未操作接单或关单时，系统自动将餐次状态设为"已接单"，管理员仍可在开餐前撤销改为关闭</li>
+    <li><strong>时间约束</strong>：截单后方可执行接单/关单操作；截单前仅可查看，不可操作</li>
+    <li><strong>撤销</strong>：管理员可在截单后、开餐前撤销关单操作（改为接单），开餐后不可修改</li>
+  </ul>
+</div>
+
+<!-- 4.2 查询统计 -->
+<div class="module-card">
+  <h3>4.2 查询统计 <span class="tag tag-p0">P0</span></h3>
+  <h4>页面描述</h4>
+  <p>管理员按用户、部门或全部维度查询点餐情况，支持穿透查询和结算打标。</p>
+
+  <h4>查询维度</h4>
+  <table>
+    <tr><th style="width:20%">维度</th><th>筛选条件</th><th>结果展示</th></tr>
+    <tr><td>按用户查询</td><td>选择指定用户 + 日期范围</td><td>该用户的统计汇总 + 明细列表</td></tr>
+    <tr><td>按部门查询</td><td>选择指定部门 + 日期范围</td><td>部门汇总（含部门内各用户分布）+ 部门明细列表</td></tr>
+    <tr><td>全部部门查询</td><td>仅选择日期范围</td><td>各部门汇总对比表 + 全部明细列表</td></tr>
+  </table>
+
+  <h4>穿透查询逻辑</h4>
+  <ul>
+    <li>"按部门查询"结果中，各部门行展示点餐数量、已结算费用、未结算费用、合计；点击数字穿透至该部门对应明细</li>
+    <li>"全部部门查询"结果中，同上，每个部门一行；底部显示全员合计行</li>
+    <li>"按用户查询"结果中，统计区域数字可穿透至该用户对应明细</li>
+    <li>穿透后的明细列表支持进一步按餐次、状态筛选</li>
+  </ul>
+
+  <h4>结算打标操作</h4>
+  <table>
+    <tr><th style="width:20%">操作</th><th>说明</th></tr>
+    <tr><td>单条打标</td><td>在明细列表中，每行右侧提供"已结算/未结算"切换按钮，点击即时更新</td></tr>
+    <tr><td>批量打标</td><td>明细列表支持复选框勾选多条记录，点击"批量结算"或"批量取消结算"按钮</td></tr>
+    <tr><td>打标校验</td><td>已关闭（关单）的餐次记录不可打标（因不计入费用）；仅"已接单"或"已截单待接单"状态可打标</td></tr>
+    <tr><td>实时更新</td><td>打标操作后，统计汇总区域数字实时刷新</td></tr>
+  </table>
+</div>
+
+<!-- 4.3 系统配置 -->
+<div class="module-card">
+  <h3>4.3 系统配置 <span class="tag tag-p1">P1</span></h3>
+  <h4>页面描述</h4>
+  <p>管理员设置餐次参数、截单时长等运营配置。</p>
+
+  <h4>配置项</h4>
+  <table>
+    <tr><th style="width:25%">配置项</th><th>默认值</th><th>说明</th></tr>
+    <tr><td>早餐开餐时间</td><td>08:00</td><td>24小时制时间</td></tr>
+    <tr><td>中餐开餐时间</td><td>12:00</td><td>24小时制时间</td></tr>
+    <tr><td>晚餐开餐时间</td><td>18:00</td><td>24小时制时间</td></tr>
+    <tr><td>早餐价格</td><td>¥10</td><td>单位：元</td></tr>
+    <tr><td>中餐价格</td><td>¥20</td><td>单位：元</td></tr>
+    <tr><td>晚餐价格</td><td>¥15</td><td>单位：元</td></tr>
+    <tr><td>截单时长</td><td>3 小时</td><td>距开餐前 N 小时截单</td></tr>
+    <tr><td>自动接单时间</td><td>2 小时</td><td>距开餐前 M 小时管理员未操作时自动接单（M &lt; N）</td></tr>
+    <tr><td>关单原因模板</td><td>点餐人数不足 / 食材供应问题 / 设备故障</td><td>预设模板，管理员可增删改，关单时选择或自定义输入</td></tr>
+    <tr><td>工作日历</td><td>2026年官方节假日安排（预置）</td><td>法定节假日列表（含名称，如元旦/春节/国庆）+ 调休补班日列表；管理员可增删维护，按月分组展示；判断优先级：补班日 > 节假日 > 周末</td></tr>
+  </table>
+  <p><strong>生效规则</strong>：参数修改后即时生效。已截单或已进行中的餐次不受影响，仅对后续餐次生效。工作日历修改后即时影响员工端日历显示、点餐开放判断和批量点餐范围。</p>
+</div>
+
+<!-- 5. 业务规则与状态机 -->
+<h2 class="section-title" id="s5">5 业务规则与状态机</h2>
+
+<h3>5.1 点餐记录状态机</h3>
+<div class="status-flow">
+  <span class="status-node sn-1">可点餐（未截单）</span>
+  <span class="status-arrow">→</span>
+  <span class="status-node sn-2">已截单（已锁定）</span>
+  <span class="status-arrow">→</span>
+  <span class="status-node sn-3">已接单（手动/自动）</span>
+</div>
+<div class="status-flow" style="margin-top: 8px;">
+  <span class="status-node sn-2">已截单（已锁定）</span>
+  <span class="status-arrow">→</span>
+  <span class="status-node sn-4">已关闭（作废）</span>
+</div>
+<div class="status-flow" style="margin-top: 8px;">
+  <span class="status-node sn-3">已接单（自动）</span>
+  <span class="status-arrow">→</span>
+  <span class="status-node sn-4">已关闭（撤销自动接单）</span>
+  <span style="font-size:13px;color:var(--text-secondary)">（开餐前管理员可撤销）</span>
+</div>
+<div class="status-flow" style="margin-top: 8px;">
+  <span class="status-node sn-3">已接单</span>
+  <span class="status-arrow">↔</span>
+  <span class="status-node sn-5">已结算 / 未结算</span>
+  <span style="font-size:13px;color:var(--text-secondary)">（结算状态独立叠加，不影响主状态）</span>
+</div>
+
+<h3>5.2 状态转换条件与操作权限</h3>
+<table>
+  <tr><th style="width:15%">当前状态</th><th style="width:15%">目标状态</th><th>触发条件</th><th>操作人</th><th>可执行操作</th></tr>
+  <tr><td>可点餐</td><td>可点餐</td><td>员工修改/取消</td><td>员工</td><td>修改点餐 / 取消点餐</td></tr>
+  <tr><td>可点餐</td><td>已截单</td><td>截单时刻自动到达</td><td>系统</td><td>自动锁定，不可修改</td></tr>
+  <tr><td>已截单</td><td>已接单（手动）</td><td>管理员点击"接单"</td><td>管理员</td><td>记录有效，计入费用</td></tr>
+  <tr><td>已截单</td><td>已接单（自动）</td><td>距开餐前 M 小时（默认2小时）管理员未操作</td><td>系统</td><td>记录有效，计入费用；管理员可撤销</td></tr>
+  <tr><td>已截单</td><td>已关闭</td><td>管理员点击"关闭"并填写原因</td><td>管理员</td><td>记录作废，不计费用</td></tr>
+  <tr><td>已接单（手动/自动）</td><td>已关闭</td><td>管理员撤销接单改为关闭（开餐前）</td><td>管理员</td><td>记录作废，不计费用</td></tr>
+  <tr><td>已关闭</td><td>已接单</td><td>管理员撤销关闭改为接单（开餐前）</td><td>管理员</td><td>恢复记录有效</td></tr>
+  <tr><td>已接单</td><td>已结算/未结算</td><td>管理员打标操作</td><td>管理员</td><td>结算状态切换</td></tr>
+</table>
+
+<h3>5.3 截单时间计算</h3>
+<div class="code-block">
+截单时间 = 开餐时间 - 截单时长（默认3小时）
+
+示例（默认配置）：
+  早餐开餐 08:00 → 截单时间 05:00
+  中餐开餐 12:00 → 截单时间 09:00
+  晚餐开餐 18:00 → 截单时间 15:00
+
+截单时刻到达后，系统自动将该餐次所有"可点餐"状态的记录变为"已截单"。
+</div>
+
+<h3>5.3.1 自动接单时间计算</h3>
+<div class="code-block">
+自动接单时间 = 开餐时间 - 自动接单时长（默认2小时）
+
+示例（默认配置：截单3小时，自动接单2小时）：
+  早餐开餐 08:00 → 截单时间 05:00 → 自动接单时间 06:00
+  中餐开餐 12:00 → 截单时间 09:00 → 自动接单时间 10:00
+  晚餐开餐 18:00 → 截单时间 15:00 → 自动接单时间 16:00
+
+截单后至自动接单时间前，管理员可手动接单或关单。
+自动接单时刻到达且管理员未操作时，系统自动将餐次状态设为"已接单"。
+管理员仍可在开餐前撤销自动接单改为关单。
+约束：自动接单时长 &lt; 截单时长，即自动接单时间晚于截单时间。
+</div>
+
+<h3>5.4 非法定工作日规则</h3>
+<ul>
+  <li><strong>法定工作日定义</strong>：按国务院发布的年度法定节假日安排判断，判断优先级为 <strong>调休补班日 > 法定节假日 > 普通周末</strong>：
+    <ol>
+      <li>日期在调休补班日列表中（如国庆前的周日补班）→ <strong>是工作日</strong>，食堂开放</li>
+      <li>日期在法定节假日列表中（元旦、春节、清明、五一、端午、中秋、国庆）→ 非工作日，食堂不开放</li>
+      <li>日期为普通周六日 → 非工作日，食堂不开放</li>
+      <li>其余日期 → 工作日，食堂开放</li>
+    </ol>
+  </li>
+  <li><strong>员工端展示</strong>：日历上法定节假日红色底并标注节假日名称（如"中秋"），普通周末灰色底标注"休"，调休补班日橙色标注"班"；选中非工作日时，三餐卡片状态显示节假日名称或"食堂不开放"，操作按钮置灰；一键批量点餐按钮隐藏</li>
+  <li><strong>管理端</strong>：当日为非工作日时，运营看板显示节假日名称或"非工作日"提示；各餐次状态显示"食堂不开放"，无接单/关闭操作</li>
+  <li><strong>批量点餐</strong>：getWorkdays() 逐日判断法定工作日，自动排除节假日和普通周末，自动包含调休补班日</li>
+  <li><strong>数据生成</strong>：系统不为非工作日生成餐次会话记录；查询统计结果中不出现非工作日数据</li>
+  <li><strong>日历维护</strong>：管理员可在系统配置中增删法定节假日（含名称）和调休补班日；年度新安排发布后由管理员更新，或对接官方日历数据源</li>
+</ul>
+
+<h3>5.5 费用计算规则</h3>
+<ul>
+  <li>单条记录费用 = 套餐价格（取下单时的价格快照，不受后续调价影响）</li>
+  <li>已结算费用 = Σ（结算状态为"已结算"且非"已关闭"的记录费用）</li>
+  <li>未结算费用 = Σ（结算状态为"未结算"且非"已关闭"的记录费用）</li>
+  <li>合计费用 = 已结算费用 + 未结算费用</li>
+  <li>"已关闭"的记录费用为 0，不参与任何费用统计</li>
+</ul>
+
+<!-- 6. 数据模型 -->
+<h2 class="section-title" id="s6">6 数据模型</h2>
+
+<h3>6.1 ER 关系概览</h3>
+<div class="code-block">
+用户(User) 1───* 点餐记录(Order)
+部门(Department) 1───* 用户(User)
+餐次配置(MealConfig) 1───* 点餐记录(Order)
+餐次状态(MealSession) 1───* 点餐记录(Order)
+</div>
+
+<h3>6.2 数据表定义</h3>
+
+<h4>6.2.1 用户表（user）</h4>
+<table>
+  <tr><th style="width:20%">字段</th><th>类型</th><th>说明</th></tr>
+  <tr><td>id</td><td>INTEGER PK</td><td>主键</td></tr>
+  <tr><td>username</td><td>VARCHAR(50)</td><td>登录用户名</td></tr>
+  <tr><td>name</td><td>VARCHAR(50)</td><td>姓名</td></tr>
+  <tr><td>dept_id</td><td>INTEGER FK</td><td>所属部门</td></tr>
+  <tr><td>role</td><td>VARCHAR(20)</td><td>角色：employee / admin</td></tr>
+  <tr><td>created_at</td><td>DATETIME</td><td>创建时间</td></tr>
+</table>
+
+<h4>6.2.2 部门表（department）</h4>
+<table>
+  <tr><th style="width:20%">字段</th><th>类型</th><th>说明</th></tr>
+  <tr><td>id</td><td>INTEGER PK</td><td>主键</td></tr>
+  <tr><td>name</td><td>VARCHAR(100)</td><td>部门名称</td></tr>
+  <tr><td>sort_order</td><td>INTEGER</td><td>排序</td></tr>
+</table>
+
+<h4>6.2.3 餐次配置表（meal_config）</h4>
+<table>
+  <tr><th style="width:20%">字段</th><th>类型</th><th>说明</th></tr>
+  <tr><td>id</td><td>INTEGER PK</td><td>主键</td></tr>
+  <tr><td>meal_type</td><td>VARCHAR(10)</td><td>餐次：breakfast / lunch / dinner</td></tr>
+  <tr><td>meal_name</td><td>VARCHAR(20)</td><td>显示名称：早餐 / 中餐 / 晚餐</td></tr>
+  <tr><td>serve_time</td><td>TIME</td><td>开餐时间，如 08:00</td></tr>
+  <tr><td>price</td><td>DECIMAL(8,2)</td><td>套餐价格</td></tr>
+  <tr><td>cutoff_hours</td><td>INTEGER</td><td>截单时长（小时），默认3</td></tr>
+  <tr><td>auto_accept_hours</td><td>INTEGER</td><td>自动接单时长（距开餐前小时数），默认2</td></tr>
+  <tr><td>updated_at</td><td>DATETIME</td><td>最后修改时间</td></tr>
+</table>
+
+<h4>6.2.4 餐次会话表（meal_session）</h4>
+<p>每餐每天生成一条会话记录，管理该餐次的接单/关单状态。</p>
+<table>
+  <tr><th style="width:20%">字段</th><th>类型</th><th>说明</th></tr>
+  <tr><td>id</td><td>INTEGER PK</td><td>主键</td></tr>
+  <tr><td>meal_date</td><td>DATE</td><td>餐次日期</td></tr>
+  <tr><td>meal_type</td><td>VARCHAR(10)</td><td>餐次类型</td></tr>
+  <tr><td>status</td><td>VARCHAR(20)</td><td>open（待截单）/ locked（已截单）/ accepted（已接单）/ closed（已关闭）。其中 accepted 可由管理员手动触发或系统自动触发</td></tr>
+  <tr><td>auto_accepted</td><td>BOOLEAN</td><td>是否为系统自动接单（true=自动，false=手动），用于区分接单来源</td></tr>
+  <tr><td>close_reason</td><td>VARCHAR(500)</td><td>关闭原因（仅 closed 状态有值）</td></tr>
+  <tr><td>cutoff_at</td><td>DATETIME</td><td>截单时间</td></tr>
+  <tr><td>locked_at</td><td>DATETIME</td><td>实际锁定时间</td></tr>
+  <tr><td>accepted_at</td><td>DATETIME</td><td>接单时间</td></tr>
+  <tr><td>closed_at</td><td>DATETIME</td><td>关单时间</td></tr>
+  <tr><td>operator</td><td>VARCHAR(50)</td><td>操作人</td></tr>
+</table>
+
+<h4>6.2.5 点餐记录表（order）</h4>
+<table>
+  <tr><th style="width:20%">字段</th><th>类型</th><th>说明</th></tr>
+  <tr><td>id</td><td>INTEGER PK</td><td>主键</td></tr>
+  <tr><td>session_id</td><td>INTEGER FK</td><td>关联餐次会话</td></tr>
+  <tr><td>user_id</td><td>INTEGER FK</td><td>点餐用户</td></tr>
+  <tr><td>dept_id</td><td>INTEGER FK</td><td>用户部门（冗余，便于查询）</td></tr>
+  <tr><td>meal_date</td><td>DATE</td><td>餐次日期</td></tr>
+  <tr><td>meal_type</td><td>VARCHAR(10)</td><td>餐次类型</td></tr>
+  <tr><td>price</td><td>DECIMAL(8,2)</td><td>下单时价格快照</td></tr>
+  <tr><td>status</td><td>VARCHAR(20)</td><td>active（有效）/ void（已关闭作废）</td></tr>
+  <tr><td>settled</td><td>BOOLEAN</td><td>结算状态：false=未结算 / true=已结算</td></tr>
+  <tr><td>settled_at</td><td>DATETIME</td><td>结算时间</td></tr>
+  <tr><td>created_at</td><td>DATETIME</td><td>下单时间</td></tr>
+  <tr><td>updated_at</td><td>DATETIME</td><td>最后修改时间</td></tr>
+</table>
+
+<h4>6.2.6 关单原因模板表（close_reason_template）</h4>
+<table>
+  <tr><th style="width:20%">字段</th><th>类型</th><th>说明</th></tr>
+  <tr><td>id</td><td>INTEGER PK</td><td>主键</td></tr>
+  <tr><td>reason_text</td><td>VARCHAR(500)</td><td>原因内容</td></tr>
+  <tr><td>sort_order</td><td>INTEGER</td><td>排序</td></tr>
+  <tr><td>is_active</td><td>BOOLEAN</td><td>是否启用</td></tr>
+</table>
+
+<h4>6.2.7 工作日历表（holiday_calendar）</h4>
+<p>存储法定节假日和调休补班日安排，用于判断食堂开放日期。每年国务院发布新安排后由管理员更新，或对接官方日历数据源自动同步。</p>
+<table>
+  <tr><th style="width:20%">字段</th><th>类型</th><th>说明</th></tr>
+  <tr><td>id</td><td>INTEGER PK</td><td>主键</td></tr>
+  <tr><td>calendar_date</td><td>DATE UNIQUE</td><td>日期</td></tr>
+  <tr><td>day_type</td><td>VARCHAR(20)</td><td>holiday（法定节假日）/ extra_workday（调休补班日）</td></tr>
+  <tr><td>holiday_name</td><td>VARCHAR(50)</td><td>节假日名称，如"元旦""春节""国庆节"（补班日为空）</td></tr>
+  <tr><td>source</td><td>VARCHAR(20)</td><td>official（官方安排）/ manual（管理员手动维护）</td></tr>
+  <tr><td>created_at</td><td>DATETIME</td><td>创建时间</td></tr>
+</table>
+<p><strong>工作日判断逻辑</strong>：某日期为工作日 ⟺ （不在 holiday_calendar 中 day_type=holiday）且（不在 day_type=extra_workday 或为周一至周五）。</p>
+
+<!-- 7. 接口规范 -->
+<h2 class="section-title" id="s7">7 接口规范</h2>
+
+<h3>7.1 员工端接口</h3>
+
+<div class="api-card">
+  <div class="api-head"><span class="api-method method-get">GET</span> /api/meals/today/ — 获取今日餐次列表</div>
+  <div class="api-body">
+    <p><strong>响应示例：</strong></p>
+    <div class="code-block">{
+  "code": 0,
+  "data": [
+    {
+      "meal_type": "breakfast",
+      "meal_name": "早餐",
+      "serve_time": "08:00",
+      "price": 10.00,
+      "status": "open",          // open / locked / accepted / closed
+      "close_reason": null,
+      "cutoff_remaining": 7200,  // 剩余秒数，已截单为0
+      "ordered": false           // 当前用户是否已点餐
+    },
+    ...
+  ]
+}</div>
+  </div>
+</div>
+
+<div class="api-card">
+  <div class="api-head"><span class="api-method method-post">POST</span> /api/orders/ — 创建点餐</div>
+  <div class="api-body">
+    <table>
+      <tr><th style="width:20%">参数</th><th>类型</th><th>说明</th></tr>
+      <tr><td>meal_type</td><td>string</td><td>餐次：breakfast / lunch / dinner</td></tr>
+      <tr><td>meal_date</td><td>string</td><td>餐次日期，支持当天及未来日期</td></tr>
+      <tr><td>quantity</td><td>int</td><td>份数，默认1，范围1~10</td></tr>
+    </table>
+    <p><strong>约束</strong>：截单后返回 403；同一餐次同一日期重复下单为覆盖操作；过去日期返回 403</p>
+  </div>
+</div>
+
+<div class="api-card">
+  <div class="api-head"><span class="api-method method-del">DELETE</span> /api/orders/{id}/ — 取消点餐</div>
+  <div class="api-body">
+    <p><strong>约束</strong>：截单后返回 403；仅可取消本人记录</p>
+  </div>
+</div>
+
+<div class="api-card">
+  <div class="api-head"><span class="api-method method-post">POST</span> /api/orders/batch/ — 批量点餐（一键工作日点餐）</div>
+  <div class="api-body">
+    <table>
+      <tr><th style="width:20%">参数</th><th>类型</th><th>说明</th></tr>
+      <tr><td>range</td><td>string</td><td>week（本周工作日）/ month（本月工作日）</td></tr>
+      <tr><td>quantities</td><td>object</td><td>各餐份数：{breakfast: 1, lunch: 1, dinner: 0}（0=不点）</td></tr>
+    </table>
+    <p><strong>响应</strong>：返回成功条数、跳过条数（已截单/已关闭）</p>
+    <p><strong>约束</strong>：系统自动计算工作日范围（当天及未来），已截单/已关闭餐次跳过，已存在记录覆盖更新</p>
+  </div>
+</div>
+
+<div class="api-card">
+  <div class="api-head"><span class="api-method method-get">GET</span> /api/orders/my/ — 查询个人点餐记录</div>
+  <div class="api-body">
+    <table>
+      <tr><th style="width:20%">参数</th><th>类型</th><th>说明</th></tr>
+      <tr><td>start_date</td><td>string</td><td>起始日期（必填）</td></tr>
+      <tr><td>end_date</td><td>string</td><td>结束日期（必填）</td></tr>
+    </table>
+    <p><strong>响应</strong>：统计汇总 + 明细列表</p>
+  </div>
+</div>
+
+<h3>7.2 管理端接口</h3>
+
+<div class="api-card">
+  <div class="api-head"><span class="api-method method-get">GET</span> /api/admin/dashboard/ — 运营看板数据</div>
+  <div class="api-body">
+    <p>返回当日各餐次汇总 + 部门分布</p>
+  </div>
+</div>
+
+<div class="api-card">
+  <div class="api-head"><span class="api-method method-put">PUT</span> /api/admin/sessions/{id}/accept/ — 接单</div>
+  <div class="api-body">
+    <p>将餐次会话状态改为 accepted</p>
+  </div>
+</div>
+
+<div class="api-card">
+  <div class="api-head"><span class="api-method method-put">PUT</span> /api/admin/sessions/{id}/close/ — 关单</div>
+  <div class="api-body">
+    <table>
+      <tr><th style="width:20%">参数</th><th>类型</th><th>说明</th></tr>
+      <tr><td>reason</td><td>string</td><td>关闭原因（必填）</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="api-card">
+  <div class="api-head"><span class="api-method method-get">GET</span> /api/admin/orders/ — 查询点餐记录</div>
+  <div class="api-body">
+    <table>
+      <tr><th style="width:20%">参数</th><th>类型</th><th>说明</th></tr>
+      <tr><td>query_type</td><td>string</td><td>user / dept / all</td></tr>
+      <tr><td>user_id</td><td>int</td><td>query_type=user 时必填</td></tr>
+      <tr><td>dept_id</td><td>int</td><td>query_type=dept 时必填</td></tr>
+      <tr><td>start_date</td><td>string</td><td>起始日期</td></tr>
+      <tr><td>end_date</td><td>string</td><td>结束日期</td></tr>
+    </table>
+    <p><strong>响应</strong>：按维度的统计汇总 + 明细列表</p>
+  </div>
+</div>
+
+<div class="api-card">
+  <div class="api-head"><span class="api-method method-put">PUT</span> /api/admin/orders/settle/ — 结算打标</div>
+  <div class="api-body">
+    <table>
+      <tr><th style="width:20%">参数</th><th>类型</th><th>说明</th></tr>
+      <tr><td>order_ids</td><td>array</td><td>点餐记录ID列表</td></tr>
+      <tr><td>settled</td><td>bool</td><td>true=已结算 / false=未结算</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="api-card">
+  <div class="api-head"><span class="api-method method-get">GET</span> /api/admin/config/ — 获取配置</div>
+  <div class="api-body">
+    <p>返回餐次时间、价格、截单时长、自动接单时间、关单原因模板</p>
+  </div>
+</div>
+
+<div class="api-card">
+  <div class="api-head"><span class="api-method method-put">PUT</span> /api/admin/config/ — 修改配置</div>
+  <div class="api-body">
+    <p>修改餐次时间、价格、截单时长、自动接单时间等参数</p>
+  </div>
+</div>
+
+<div class="api-card">
+  <div class="api-head"><span class="api-method method-get">GET</span> /api/admin/calendar/ — 获取工作日历</div>
+  <div class="api-body">
+    <table>
+      <tr><th style="width:20%">参数</th><th>类型</th><th>说明</th></tr>
+      <tr><td>year</td><td>int</td><td>年份（必填），返回该年所有节假日和补班日</td></tr>
+    </table>
+    <p><strong>响应</strong>：节假日列表（含名称）+ 补班日列表</p>
+  </div>
+</div>
+
+<div class="api-card">
+  <div class="api-head"><span class="api-method method-post">POST</span> /api/admin/calendar/ — 添加节假日/补班日</div>
+  <div class="api-body">
+    <table>
+      <tr><th style="width:20%">参数</th><th>类型</th><th>说明</th></tr>
+      <tr><td>calendar_date</td><td>string</td><td>日期（必填）</td></tr>
+      <tr><td>day_type</td><td>string</td><td>holiday（节假日）/ extra_workday（补班日）（必填）</td></tr>
+      <tr><td>holiday_name</td><td>string</td><td>节假日名称（节假日必填，补班日可空）</td></tr>
+    </table>
+    <p><strong>约束</strong>：同一日期只能有一条记录；重复添加返回 409</p>
+  </div>
+</div>
+
+<div class="api-card">
+  <div class="api-head"><span class="api-method method-del">DELETE</span> /api/admin/calendar/{date}/ — 删除节假日/补班日</div>
+  <div class="api-body">
+    <p><strong>约束</strong>：删除后该日期恢复为默认周末/工作日判断；official 来源的记录删除需二次确认</p>
+  </div>
+</div>
+
+<!-- 8. 界面规范 -->
+<h2 class="section-title" id="s8">8 界面规范</h2>
+
+<h3>8.1 员工端</h3>
+<table>
+  <tr><th style="width:25%">页面</th><th>布局描述</th></tr>
+  <tr><td>首页点餐</td><td>顶部月历组件（可切换月份/选择日期/查看点餐标注）+ 一键批量点餐按钮（本周/本月工作日）+ 中部三餐卡片纵向排列 + 底部已点餐汇总</td></tr>
+  <tr><td>我的记录</td><td>顶部日期范围选择器 + 查询按钮；统计汇总区（4个卡片）；明细列表表格；支持点击统计数字筛选</td></tr>
+</table>
+
+<h3>8.2 管理端</h3>
+<table>
+  <tr><th style="width:25%">页面</th><th>布局描述</th></tr>
+  <tr><td>运营看板</td><td>顶部导航栏（看板/查询统计/系统配置）；餐次汇总卡片（含部门分布折叠表）；每卡含接单/关单按钮</td></tr>
+  <tr><td>查询统计</td><td>筛选条件区（维度选择+日期范围）；统计汇总表；穿透明细列表（含结算打标操作）</td></tr>
+  <tr><td>系统配置</td><td>表单式布局：餐次时间、价格、截单时长、自动接单时间、关单原因模板管理、工作日历管理（法定节假日/调休补班日增删，按月分组展示，节假日标注名称）</td></tr>
+</table>
+
+<h3>8.3 视觉规范</h3>
+<table>
+  <tr><th style="width:25%">元素</th><th>规范</th></tr>
+  <tr><td>主色</td><td>#1a73e8（蓝色系，简洁专业）</td></tr>
+  <tr><td>状态色</td><td>绿色=可点餐/已接单；橙色=已截单；红色=已关闭</td></tr>
+  <tr><td>字号</td><td>标题 18px / 正文 14px / 辅助 12px</td></tr>
+  <tr><td>按钮</td><td>主操作实色填充，次操作描边，不可用时灰色置灰</td></tr>
+  <tr><td>响应式</td><td>员工端适配手机竖屏；管理端适配PC宽屏</td></tr>
+</table>
+
+<!-- 9. 非功能性需求 -->
+<h2 class="section-title" id="s9">9 非功能性需求</h2>
+<table>
+  <tr><th style="width:20%">维度</th><th>要求</th><th style="width:10%">优先级</th></tr>
+  <tr><td>性能</td><td>页面加载 ≤ 2s；接口响应 ≤ 500ms；支持 500 并发用户</td><td><span class="tag tag-p0">P0</span></td></tr>
+  <tr><td>可用性</td><td>系统可用率 ≥ 99.5%（工作时间 06:00-20:00）</td><td><span class="tag tag-p0">P0</span></td></tr>
+  <tr><td>安全</td><td>用户鉴权；数据权限隔离；防越权访问；操作日志留存</td><td><span class="tag tag-p0">P0</span></td></tr>
+  <tr><td>兼容</td><td>Chrome 90+ / Edge 90+ / Safari 14+ / 移动端浏览器</td><td><span class="tag tag-p1">P1</span></td></tr>
+  <tr><td>部署</td><td>内网部署，零外部依赖；支持 Docker 或裸机部署</td><td><span class="tag tag-p0">P0</span></td></tr>
+  <tr><td>数据备份</td><td>每日自动备份；支持按日期恢复</td><td><span class="tag tag-p1">P1</span></td></tr>
+</table>
+
+<!-- 10. 迭代规划 -->
+<h2 class="section-title" id="s10">10 迭代规划</h2>
+<table>
+  <tr><th style="width:15%">版本</th><th style="width:15%">周期</th><th>范围</th></tr>
+  <tr><td>V1.0（MVP）</td><td>3 周</td><td>员工点餐（三餐卡片+截单锁定）、管理员看板（汇总+接单/关单）、个人查询统计、结算打标、系统配置</td></tr>
+  <tr><td>V1.1</td><td>2 周</td><td>统计数字穿透明细、部门维度查询、批量结算打标、关单原因模板管理</td></tr>
+  <tr><td>V2.0（规划）</td><td>-</td><td>多套餐选择、菜品详情展示、周/月报表导出、消息通知（企微/钉钉）、消费额度限制</td></tr>
+</table>
+
+<div class="footer">
+  食堂点餐系统 · 产品需求文档（PRD）V1.0 · 2026-09-15
+</div>
+
+</div>
+</body>
+</html>
