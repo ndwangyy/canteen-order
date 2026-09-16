@@ -1581,7 +1581,7 @@ function renderAdminDashboard(){
           html += `</div>`;
         }
       } else {
-        html += `<div style="margin-top:8px"><button class="btn btn-outline btn-sm" onclick="closeMealPrompt('${mt.type}')">撤销接单，改为关闭</button></div>`;
+        html += `<div style="margin-top:8px"><button class="btn btn-outline btn-sm" onclick="undoAccept('${mt.type}')">撤销接单</button></div>`;
       }
     } else if(status === 'locked'){
       const autoAcceptRemain = isToday(dashDate) ? (function(){
@@ -1601,6 +1601,7 @@ function renderAdminDashboard(){
       if(isFuture){
         html += `<div style="font-size:13px;color:var(--text2);margin-top:8px">尚未截单（截单时间 ${getCutoffTime(mt.type)}）</div>`;
         html += `<div style="display:flex;gap:8px;margin-top:8px">`;
+        html += `<button class="btn btn-success btn-sm" onclick="acceptMeal('${mt.type}')">提前接单</button>`;
         html += `<button class="btn btn-danger btn-sm" onclick="closeMealPrompt('${mt.type}')">关闭（需填原因）</button>`;
         html += `</div>`;
       } else {
@@ -2293,6 +2294,16 @@ function acceptMeal(mealType){
   if(session){
     session.status = 'accepted';
     toast(getMealName(mealType)+'已接单');
+    render();
+  }
+}
+
+function undoAccept(mealType){
+  const dashDate = getAdminDashDate();
+  const session = getSessionByDate(dashDate, mealType);
+  if(session){
+    session.status = 'open';
+    toast(getMealName(mealType) + '已撤销接单，恢复点餐');
     render();
   }
 }
