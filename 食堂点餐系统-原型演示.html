@@ -622,6 +622,15 @@ function computeMealStatus(t){
   const nowMin = now.getHours()*60 + now.getMinutes();
   return nowMin < cutoffMin ? 'open' : 'locked';
 }
+function isMealTimePassed(t, dateStr){
+  // 判断某餐次的开餐时间是否已过（用于当天过餐后显示"就餐时间已过"）
+  if(dateStr && !isToday(dateStr)) return dateStr < formatDate(new Date());
+  const now = getNow();
+  const [sh,sm] = getConfigTime(t).split(':').map(Number);
+  const serveMin = sh*60 + sm;
+  const nowMin = now.getHours()*60 + now.getMinutes();
+  return nowMin >= serveMin;
+}
 function getCutoffRemaining(t){
   const now = getNow();
   const [sh,sm] = getConfigTime(t).split(':').map(Number);
@@ -820,8 +829,9 @@ function renderEmpHome(){
     const price = state.config[mt.type].price;
     const canOrder = status === 'open';
     const isClosed = status === 'closed';
-    const statusText = isWknd ? (getDayType(selDate) === 'holiday' && getHolidayName(selDate) ? getHolidayName(selDate)+'·不开放' : '食堂不开放') : isPast ? '已过' : {open:'可点餐',locked:'已截单',accepted:'已接单',closed:'已关闭'}[status];
-    const statusClass = isPast ? 'st-locked' : {open:'st-open',locked:'st-locked',accepted:'st-accepted',closed:'st-closed'}[status];
+    const mealPassed = isMealTimePassed(mt.type, selDate); // 开餐时间已过
+    const statusText = isWknd ? (getDayType(selDate) === 'holiday' && getHolidayName(selDate) ? getHolidayName(selDate)+'·不开放' : '食堂不开放') : isPast ? '已过' : (status==='accepted' && mealPassed) ? '就餐时间已过，已核销' : {open:'可点餐',locked:'已截单',accepted:'已接单',closed:'已关闭'}[status];
+    const statusClass = isPast ? 'st-locked' : (status==='accepted' && mealPassed) ? 'st-locked' : {open:'st-open',locked:'st-locked',accepted:'st-accepted',closed:'st-closed'}[status];
 
     html += `<div class="h5-meal ${myOrder?'ordered':''} ${isClosed?'closed':''}">`;
     html += `<div class="h5-meal-head"><div><div class="h5-meal-name">${mt.icon} ${mt.name}</div><div class="h5-meal-time">开餐 ${getConfigTime(mt.type)} · 截单 ${getCutoffTime(mt.type)}</div></div></div>`;
@@ -858,6 +868,8 @@ function renderEmpHome(){
       html += `<div class="h5-actions"><button class="h5-btn h5-btn-outline" disabled>该日期已过，无法点餐</button></div>`;
     } else if(isClosed){
       html += `<div class="h5-actions"><button class="h5-btn h5-btn-outline" disabled>本餐已关闭</button></div>`;
+    } else if(status === 'accepted' && mealPassed){
+      html += `<div class="h5-actions"><button class="h5-btn h5-btn-outline" disabled>就餐时间已过，已核销</button></div>`;
     } else if(status === 'accepted'){
       html += `<div class="h5-actions"><button class="h5-btn h5-btn-success" disabled>已接单，请按时就餐</button></div>`;
     } else {
@@ -872,6 +884,7 @@ function renderEmpHome(){
     myOrders.forEach(o => {
       const ds = getOrderDisplayStatus(o);
       const sBadge = ds==='cancelled' ? '<span class="badge badge-cancelled">已取消</span>' :
+        (getSessionStatus(o.mealType, o.mealDate)==='accepted' && isMealTimePassed(o.mealType, o.mealDate)) ? '<span class="badge badge-accepted">已核销</span>' :
         getSessionStatus(o.mealType, o.mealDate)==='accepted' ? '<span class="badge badge-accepted">已接单</span>' :
         '<span class="badge badge-locked">已截单</span>';
       const settBadge = ds==='cancelled' ? '-' :
@@ -1000,16 +1013,16 @@ function getWorkdays(range){
       const d = new Date(monday);
       d.setDate(monday.getDate() + i);
       const dStr = formatDate(d);
-      if(dStr >= todayStr && !isNonWorkday(dStr)) dates.push(dStr);
-    }
-  } else {
-    // 当月所有日期，逐日判断法定工作日（含周末补班日）
-    const year = today.getFullYear(), month = today.getMonth();
-    const lastDay = new Date(year, month+1, 0).getDate();
-    for(let d=1; d<=lastDay; d++){
-      const date = new Date(year, month, d);
-      const dStr = formatDate(date);
-      if(dStr >= todayStr && !isNonWorkday(dStr)) dates.push(dStr);
+       if(dStr > todayStr && !isNonWorkday(dStr)) dates.push(dStr);
+     }
+   } else {
+     // 当月所有日期，逐日判断法定工作日（含周末补班日），排除当天
+     const year = today.getFullYear(), month = today.getMonth();
+     const lastDay = new Date(year, month+1, 0).getDate();
+     for(let d=1; d<=lastDay; d++){
+       const date = new Date(year, month, d);
+       const dStr = formatDate(date);
+       if(dStr > todayStr && !isNonWorkday(dStr)) dates.push(dStr);
     }
   }
   return dates;
