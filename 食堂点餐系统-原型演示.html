@@ -851,8 +851,7 @@ function renderEmpHome(){
   // Quick order bar (only show for today or future, not weekend)
   if(!isPast && !isWknd){
     html += `<div class="h5-quick-bar">`;
-    html += `<div class="h5-quick-btn" onclick="openBatchOrder('week')"><span class="qb-icon">⚡</span>本周工作日点餐</div>`;
-    html += `<div class="h5-quick-btn" onclick="openBatchOrder('month')"><span class="qb-icon">⚡</span>本月工作日点餐</div>`;
+    html += `<div class="h5-quick-btn" onclick="openBatchOrder()" style="flex:1"><span class="qb-icon">⚡</span>一键点餐</div>`;
     html += `</div>`;
   }
 
@@ -1051,40 +1050,62 @@ function selectDate(dateStr){
 /* ============================================================
  * BATCH ORDER (Quick order for week/month workdays)
  * ============================================================ */
-function getWorkdays(range){
+function getWorkdays(days){
   const today = new Date();
   today.setHours(0,0,0,0);
   const todayStr = formatDate(today);
   let dates = [];
-  if(range === 'week'){
-    // 本周周一至周日（7天），逐日判断法定工作日（含周末补班日）
-    const day = today.getDay(); // 0=Sun
+  for(let i=1; i<=days; i++){
+    const d = new Date(today);
+    d.setDate(d.getDate() + i);
+    const dStr = formatDate(d);
+    if(!isNonWorkday(dStr)) dates.push(dStr);
+  }
+  return dates;
+}
+
+function getWorkdaysForPreset(preset){
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const todayStr = formatDate(today);
+  let dates = [];
+  if(preset === 'week'){
+    const day = today.getDay();
     const monday = new Date(today);
     monday.setDate(today.getDate() - (day === 0 ? 6 : day - 1));
     for(let i=0; i<7; i++){
       const d = new Date(monday);
       d.setDate(monday.getDate() + i);
       const dStr = formatDate(d);
-       if(dStr > todayStr && !isNonWorkday(dStr)) dates.push(dStr);
-     }
-   } else {
-     // 当月所有日期，逐日判断法定工作日（含周末补班日），排除当天
-     const year = today.getFullYear(), month = today.getMonth();
-     const lastDay = new Date(year, month+1, 0).getDate();
-     for(let d=1; d<=lastDay; d++){
-       const date = new Date(year, month, d);
-       const dStr = formatDate(date);
-       if(dStr > todayStr && !isNonWorkday(dStr)) dates.push(dStr);
+      if(dStr > todayStr && !isNonWorkday(dStr)) dates.push(dStr);
     }
+  } else if(preset === 'month'){
+    const year = today.getFullYear(), month = today.getMonth();
+    const lastDay = new Date(year, month+1, 0).getDate();
+    for(let d=1; d<=lastDay; d++){
+      const date = new Date(year, month, d);
+      const dStr = formatDate(date);
+      if(dStr > todayStr && !isNonWorkday(dStr)) dates.push(dStr);
+    }
+  } else {
+    const days = parseInt(preset);
+    if(days > 0) dates = getWorkdays(days);
   }
   return dates;
 }
 
-function openBatchOrder(range){
-  const dates = getWorkdays(range);
-  const rangeLabel = range === 'week' ? '本周' : '本月';
-  if(dates.length === 0){ toast(rangeLabel + '没有可点餐的工作日'); return; }
+function openBatchOrder(){
+  openBatchOrderWithDays(30);
+}
 
+function openBatchOrderWithDays(defaultDays){
+  const dates = getWorkdays(defaultDays);
+  if(dates.length === 0){ toast('未来'+defaultDays+'天内没有可点餐的工作日'); return; }
+  state._batchDates = dates;
+  _renderBatchOrderModal(dates, '未来'+defaultDays+'天', defaultDays);
+}
+
+function _renderBatchOrderModal(dates, rangeLabel, defaultDays){
   // Build per-date, per-meal status
   const todayStr = formatDate(new Date());
   const dateDetails = dates.map(dateStr => {
@@ -1102,8 +1123,23 @@ function openBatchOrder(range){
   const orderableDates = dateDetails.filter(d => d.canOrder);
   const skipDates = dateDetails.filter(d => !d.canOrder);
 
-  let html = `<div class="modal-head"><h3>${rangeLabel}工作日一键点餐</h3><button class="modal-close" onclick="closeModal()">×</button></div>`;
+  let html = `<div class="modal-head"><h3>一键点餐</h3><button class="modal-close" onclick="closeModal()">×</button></div>`;
   html += `<div class="modal-body">`;
+
+  // 快捷选择
+  html += `<div style="margin-bottom:14px">`;
+  html += `<div style="font-size:13px;color:var(--text2);margin-bottom:8px">选择范围（当前：${rangeLabel}）</div>`;
+  html += `<div style="display:flex;gap:6px;flex-wrap:wrap">`;
+  [{label:'本周',preset:'week'},{label:'本月',preset:'month'},{label:'20天',preset:'20'},{label:'30天',preset:'30'}].forEach(opt => {
+    html += `<button class="btn btn-sm btn-outline" onclick="reloadBatchOrder('${opt.preset}')">${opt.label}</button>`;
+  });
+  html += `</div>`;
+  html += `<div style="display:flex;gap:6px;align-items:center;margin-top:8px">`;
+  html += `<input type="number" id="batchCustomDays" value="${defaultDays||30}" min="1" max="60" style="width:70px;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:14px">`;
+  html += `<span style="font-size:13px;color:var(--text2)">天以内工作日</span>`;
+  html += `<button class="btn btn-sm btn-primary" onclick="reloadBatchOrder(document.getElementById('batchCustomDays').value)">确定</button>`;
+  html += `</div>`;
+  html += `</div>`;
 
   // Summary info
   html += `<div style="background:var(--bg);border-radius:8px;padding:10px 14px;margin-bottom:14px">`;
@@ -1176,11 +1212,28 @@ function openBatchOrder(range){
   // Footer
   html += `<div class="modal-foot">`;
   html += `<button class="btn btn-outline" onclick="closeModal()">取消</button>`;
-  html += `<button class="btn btn-primary" id="batchConfirmBtn" onclick="confirmBatchOrder('${range}')" ${orderableDates.length===0?'disabled':''}>确认点餐</button>`;
+  html += `<button class="btn btn-primary" id="batchConfirmBtn" onclick="confirmBatchOrder()" ${orderableDates.length===0?'disabled':''}>确认点餐</button>`;
   html += `</div>`;
 
   document.getElementById('modal').innerHTML = html;
   document.getElementById('modalOverlay').classList.add('show');
+}
+
+function reloadBatchOrder(preset){
+  closeModal();
+  if(preset === 'week' || preset === 'month'){
+    const dates = getWorkdaysForPreset(preset);
+    const rangeLabel = preset === 'week' ? '本周' : '本月';
+    if(dates.length === 0){ toast(rangeLabel + '没有可点餐的工作日'); return; }
+    state._batchDates = dates;
+    _renderBatchOrderModal(dates, rangeLabel);
+  } else {
+    const days = parseInt(preset) || 30;
+    const dates = getWorkdays(days);
+    if(dates.length === 0){ toast('未来'+days+'天内没有可点餐的工作日'); return; }
+    state._batchDates = dates;
+    _renderBatchOrderModal(dates, '未来'+days+'天', days);
+  }
 }
 
 function batchToggleAll(checked){
@@ -1237,8 +1290,7 @@ function calcBatchTotal(qtys, dayCount){
   return total;
 }
 
-function confirmBatchOrder(range){
-  state._batchRange = range;
+function confirmBatchOrder(){
   const selectedDates = getSelectedBatchDates();
   const todayStr = formatDate(new Date());
   const qtys = {};
@@ -1249,7 +1301,7 @@ function confirmBatchOrder(range){
 
   let successCount = 0, skipPast = 0, skipLocked = 0, skipUnselected = 0;
   const user = USERS.find(u=>u.id===state.currentUserId);
-  const allDates = getWorkdays(range);
+  const allDates = state._batchDates || selectedDates;
   
   allDates.forEach(dateStr => {
     // Not selected by user: skip
