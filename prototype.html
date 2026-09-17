@@ -907,8 +907,8 @@ function renderEmpHome(){
     const mealPassed = isMealTimePassed(mt.type, selDate); // 开餐时间已过
     const pastOrdered = myOrder && (isPast || (status === 'accepted' && mealPassed)); // 过去日期或当日过餐，且有订餐
     const todayPassedNoOrder = !myOrder && !isPast && mealPassed; // 当日已过就餐时间且未订餐
-    const statusText = isWknd ? (getDayType(selDate) === 'holiday' && getHolidayName(selDate) ? getHolidayName(selDate)+'·不开放' : '食堂不开放') : isBeyondLimit ? '超出提前点餐上限' : pastOrdered ? '已供餐 ×'+myOrder.quantity+'份 ¥'+myOrder.fee+'元' : (isPast || todayPassedNoOrder) ? '未订餐' : myOrder && status === 'open' ? '已点餐' : {open:'可点餐',locked:'已截单',accepted:'已接单',closed:'已关闭'}[status];
-    const statusClass = pastOrdered ? 'st-accepted' : (isPast || todayPassedNoOrder || isBeyondLimit) ? 'st-locked' : {open:'st-open',locked:'st-locked',accepted:'st-accepted',closed:'st-closed'}[status];
+    const statusText = isWknd ? (getDayType(selDate) === 'holiday' && getHolidayName(selDate) ? getHolidayName(selDate)+'·不开放' : '食堂不开放') : isBeyondLimit ? '超出提前点餐上限' : pastOrdered ? '已供餐 ×'+myOrder.quantity+'份 ¥'+myOrder.fee+'元' : (isPast || todayPassedNoOrder) ? '未订餐' : myOrder ? (status === 'open' ? '已点餐 ×'+myOrder.quantity+'份 ¥'+myOrder.fee+'元' : '已订餐 ×'+myOrder.quantity+'份 ¥'+myOrder.fee+'元') : status === 'locked' ? '未订餐' : {open:'可点餐',locked:'已截单',accepted:'已接单',closed:'已关闭'}[status];
+    const statusClass = pastOrdered ? 'st-accepted' : (isPast || todayPassedNoOrder || isBeyondLimit) ? 'st-locked' : myOrder ? (status === 'open' ? 'st-open' : 'st-accepted') : {open:'st-open',locked:'st-locked',accepted:'st-accepted',closed:'st-closed'}[status];
 
     html += `<div class="h5-meal ${myOrder?'ordered':''} ${isClosed?'closed':''}">`;
     html += `<div class="h5-meal-head"><div><div class="h5-meal-name">${mt.icon} ${mt.name}</div><div class="h5-meal-time">开餐 ${getConfigTime(mt.type)} · 截单 ${getCutoffTime(mt.type)}</div></div></div>`;
