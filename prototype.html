@@ -968,6 +968,7 @@ function renderEmpHome(){
   if(!isPast && !isWknd && !isBeyondLimit){
     html += `<div class="h5-quick-bar">`;
     html += `<div class="h5-quick-btn" onclick="openBatchOrder()" style="flex:1"><span class="qb-icon">⚡</span>一键点餐</div>`;
+    html += `<div class="h5-quick-btn" onclick="openAIMeal()" style="flex:1"><span class="qb-icon">🤖</span>AI点餐助手</div>`;
     html += `</div>`;
   }
 
@@ -1236,6 +1237,180 @@ function openBatchOrderWithDays(defaultDays){
   if(dates.length === 0){ toast('未来'+defaultDays+'天内没有可点餐的工作日'); return; }
   state._batchDates = dates;
   _renderBatchOrderModal(dates, '未来'+defaultDays+'天', defaultDays);
+}
+
+/* ============================================================
+ * AI 智能点餐助手（员工端）
+ * ============================================================ */
+function openAIMeal(){
+  const examples = [
+    '帮我把下周一和周三的中餐都订上',
+    '明天早餐订2份',
+    '今天开始连续3天订中餐',
+    '周三晚餐退了',
+    '帮我把周一至周五的三餐订上',
+  ];
+  let html = `<div class="modal-head"><h3>🤖 AI 点餐助手</h3><button class="modal-close" onclick="closeModal()">×</button></div>`;
+  html += `<div class="modal-body">`;
+  html += `<p style="font-size:13px;color:var(--text2);margin-bottom:12px">用一句话完成点餐/改量/退订，AI 自动识别日期、餐次和份数。截单前可随时操作，已截单/关闭/超出上限的餐次会自动跳过。</p>`;
+  html += `<textarea id="aiInput" rows="2" placeholder="例如：帮我订下周一和周三的中餐" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;resize:none"></textarea>`;
+  html += `<div style="margin-top:8px;font-size:12px;color:var(--text3)">试试：</div>`;
+  examples.forEach((ex,i)=>{
+    html += `<button class="btn btn-sm btn-outline" style="margin:4px 4px 0 0" onclick="fillAI('${ex.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">${ex}</button>`;
+  });
+  html += `<div id="aiResult" style="margin-top:14px"></div>`;
+  html += `</div>`;
+  html += `<div class="modal-foot"><button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="parseAIMealInput()">🤖 智能解析</button></div>`;
+  document.getElementById('modal').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function fillAI(t){
+  document.getElementById('aiInput').value = t;
+}
+
+function nextWeekdayFromNow(wd, today){
+  const cur = today.getDay();
+  const delta = (wd - cur + 7) % 7;
+  const d = new Date(today); d.setDate(d.getDate() + delta);
+  return formatDate(d);
+}
+function nextWeekWeekday(wd, today){
+  const cur = today.getDay();
+  let toNext = 7 - cur; if(toNext === 7) toNext = 0; if(toNext === 0) toNext = 7;
+  const base = new Date(today); base.setDate(base.getDate() + toNext); // 下周一
+  const baseWk = base.getDay();
+  base.setDate(base.getDate() + ((wd - baseWk + 7) % 7));
+  return formatDate(base);
+}
+
+function resolveAIDates(text, today){
+  const todayStr = formatDate(today);
+  const maxAdv = getMaxAdvanceDate();
+  const addDays = n => { const d = new Date(today); d.setDate(d.getDate() + n); return formatDate(d); };
+  const wdMap = {'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'日':0,'天':0};
+  let dates = [];
+  if(/今天|今日/.test(text)) dates.push(todayStr);
+  if(/明天|明日/.test(text)) dates.push(addDays(1));
+  if(/后天/.test(text)) dates.push(addDays(2));
+  // 连续 N 天（从明天起）
+  const mN = text.match(/(\d+)\s*天/);
+  if(mN && /(连续|接下来|一直|后面|未来)/.test(text)){
+    const n = Math.min(parseInt(mN[1]) || 1, 30);
+    for(let i=1; i<=n; i++) dates.push(addDays(i));
+  }
+  // 周一到周五 / 周一至周五
+  if(/周一(到|至)周五|周一到周五|周一至周五/.test(text)){
+    const weekday = today.getDay();
+    const mondayOff = weekday === 0 ? 6 : (weekday - 1);
+    for(let i=0;i<5;i++){
+      const d = addDays(i - mondayOff);
+      if(d >= todayStr && d <= maxAdv) dates.push(d);
+    }
+  }
+  // 下周X：文本含"下周"时，所有星期序号（排除今天/明天等）都按下周解析
+  const cleanWeek = text.replace(/今天|今日|明天|明日|后天|昨日/g, '');
+  if(/下周/.test(text)){
+    const m = cleanWeek.match(/[一二三四五六日天]/g);
+    if(m) m.forEach(ch => { if(wdMap[ch] != null) dates.push(nextWeekWeekday(wdMap[ch], today)); });
+  } else {
+    // 本周X（含今天）
+    const m = cleanWeek.match(/[一二三四五六日天]/g);
+    if(m) m.forEach(ch => { if(wdMap[ch] != null) dates.push(nextWeekdayFromNow(wdMap[ch], today)); });
+  }
+  // 去重 + 过滤超限
+  dates = [...new Set(dates)].filter(d => d >= todayStr && d <= maxAdv);
+  return dates;
+}
+
+function parseAIMealInput(){
+  const text = document.getElementById('aiInput').value.trim();
+  const res = document.getElementById('aiResult');
+  if(!text){ res.innerHTML = `<div class="hint" style="background:var(--red-light);color:var(--red)">请先输入您想点/退的餐，比如"帮我订下周一的中餐"。</div>`; return; }
+  const plan = buildParsePlan(text);
+  if(plan.items.length === 0){
+    res.innerHTML = `<div class="hint" style="background:var(--red-light);color:var(--red)">我没能理解，请试试示例句式，或确认包含日期、餐次（早/中/晚）和动作（订/退）。</div>`;
+    return;
+  }
+  state._aiPlan = plan;
+  let h = `<div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--primary-dark)">AI 已为您识别以下操作${plan.isCancel?'（退订）':'（点餐）'}，请确认：</div>`;
+  h += `<div class="table-scroll"><table class="data-table" style="min-width:0"><thead><tr><th>日期</th><th>餐次</th><th>份数</th><th>单价</th></tr></thead><tbody>`;
+  let total = 0;
+  plan.items.forEach(it => {
+    const price = getMealPrice(it.mealType, it.dateStr);
+    if(!plan.isCancel) total += price * it.qty;
+    h += `<tr><td>${it.dateStr}</td><td>${getMealName(it.mealType)}</td><td>${plan.isCancel?'取消':'×'+it.qty}</td><td>¥${price.toFixed(0)}</td></tr>`;
+  });
+  h += `</tbody></table></div>`;
+  if(!plan.isCancel) h += `<div style="font-size:13px;color:var(--text2);margin-top:8px">预计合计：<b style="color:var(--primary)">¥${total.toFixed(0)}</b>（截单前可自由修改取消）</div>`;
+  h += `<div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-outline btn-sm" onclick="clearAIResult()">重新输入</button><button class="btn btn-primary btn-sm" onclick="confirmAIMeal()">确认执行</button></div>`;
+  res.innerHTML = h;
+}
+
+function buildParsePlan(text){
+  const isCancel = /取消|退掉|退订|退餐|退|不要|不订|删/.test(text);
+  // 份数
+  let qty = 1;
+  const qm = text.match(/(\d+)\s*份/);
+  if(qm) qty = parseInt(qm[1]);
+  if(qty < 1) qty = 1; if(qty > 10) qty = 10;
+  // 餐次
+  let mealTypes = [];
+  const hasBreak = /早餐|早饭|break/.test(text);
+  const hasLunch = /午餐|午饭|中餐|中午|lunch/.test(text);
+  const hasDinner = /晚餐|晚饭|dinner/.test(text);
+  if(/三餐|每餐|全部|所有/.test(text)){ mealTypes = ['breakfast','lunch','dinner']; }
+  else { if(hasBreak) mealTypes.push('breakfast'); if(hasLunch) mealTypes.push('lunch'); if(hasDinner) mealTypes.push('dinner'); }
+  // 日期
+  const today = new Date(); today.setHours(0,0,0,0);
+  const dates = resolveAIDates(text, today);
+  const items = [];
+  if(dates.length === 0 || mealTypes.length === 0) return { items:[], isCancel: isCancel };
+  dates.forEach(d => mealTypes.forEach(m => items.push({ action:'order', mealType:m, qty, dateStr:d })));
+  return { items, isCancel };
+}
+
+function confirmAIMeal(){
+  const plan = state._aiPlan;
+  if(!plan || !plan.items || plan.items.length === 0){ closeModal(); return; }
+  const todayStr = formatDate(new Date());
+  let success = 0, cancelled = 0, skipped = 0;
+  plan.items.forEach(it => {
+    if(it.dateStr < todayStr || it.dateStr > getMaxAdvanceDate() || isNonWorkday(it.dateStr)){ skipped++; return; }
+    const status = getSessionStatus(it.mealType, it.dateStr);
+    if(status !== 'open'){ skipped++; return; }
+    const user = USERS.find(u => u.id === state.currentUserId);
+    const price = getMealPrice(it.mealType, it.dateStr);
+    const existing = state.orders.find(o => o.userId===state.currentUserId && o.mealDate===it.dateStr && o.mealType===it.mealType && o.status==='active');
+    if(plan.isCancel){
+      if(existing){ existing.status = 'void'; cancelled++; } else skipped++;
+    } else {
+      if(existing){
+        existing.quantity = it.qty; existing.price = price; existing.fee = price * it.qty; success++;
+      } else {
+        const now = getNow();
+        state.orders.push({
+          id: Math.max(0, ...state.orders.map(o=>o.id)) + 1,
+          userId: state.currentUserId, userName: user.name, deptId: user.deptId, deptName: deptName(user.deptId),
+          mealDate: it.dateStr, mealType: it.mealType, mealName: getMealName(it.mealType),
+          price: price, quantity: it.qty, fee: price * it.qty,
+          status: 'active', settled: false, settledAt: null,
+          createdAt: formatDate(new Date()) + ' ' + String(getNow().getHours()).padStart(2,'0') + ':' + String(getNow().getMinutes()).padStart(2,'0'),
+        });
+        success++;
+      }
+    }
+  });
+  closeModal();
+  let msg = plan.isCancel ? `AI 退订完成：取消 ${cancelled} 条` : `AI 点餐完成：成功 ${success} 条`;
+  if(skipped > 0) msg += `，跳过 ${skipped} 条（已过/非工作日/截单/超限）`;
+  toast(msg);
+  render();
+}
+
+function clearAIResult(){
+  const res = document.getElementById('aiResult');
+  if(res) res.innerHTML = '';
 }
 
 function _renderBatchOrderModal(dates, rangeLabel, defaultDays){
@@ -1710,6 +1885,15 @@ function renderAdminDashboard(){
     html += `<span style="font-size:13px;color:var(--text2)">当前单价：<b style="color:var(--primary)">¥${effectivePrice}</b>/份${hasOverride?'<span style="color:var(--orange);font-size:11px;margin-left:4px">（临时调价）</span>':''}</span>`;
     html += `<button class="btn btn-outline btn-sm" onclick="openPriceAdjust('${mt.type}','${dashDate}')" style="font-size:12px;padding:2px 10px">调价</button>`;
     html += `</div>`;
+
+    // 建议备餐量（订餐 + 5% 富余）
+    if(!dashIsWeekend && totalQty > 0){
+      const suggestQty = Math.ceil(totalQty * 1.05);
+      html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;background:var(--green-light);padding:6px 12px;border-radius:8px">`;
+      html += `<span style="font-size:12px;color:var(--text2)">🍳 建议备餐：<b style="color:var(--green);font-size:14px">约 ${suggestQty} 份</b></span>`;
+      html += `<span style="font-size:11px;color:var(--text2)">（按订餐 ${totalQty} 份 + 5% 富余）</span>`;
+      html += `</div>`;
+    }
 
     if(dashIsWeekend){
       const hName2 = getHolidayName(dashDate);
