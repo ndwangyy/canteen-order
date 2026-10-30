@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0e1512">
+<meta name="format-detection" content="telephone=no">
+<title>掼蛋记牌速成 · 只记20张关键牌</title>
+<meta name="description" content="掼蛋记牌速成手册：不用记108张，只记住王、级牌、A、5和10、断张这5类牌。三步记牌法+10句口诀+手机记牌器，边打边用。">
+<style>
+/* ===== 掼蛋记牌速成 · 移动优先 ===== */
+:root{
+  --bg:#0e1512; --panel:#15201b; --panel2:#1b2a23; --panel3:#22352c;
+  --line:#2a3d33; --line2:#1f302a;
+  --text:#e9f2ed; --text2:#aebfb4; --muted:#77897e;
+  --gold:#e6bd5c; --gold-dim:rgba(230,189,92,.12);
+  --red:#ef6b5e; --red-dim:rgba(239,107,94,.13);
+  --green:#4fbf78; --green-dim:rgba(79,191,120,.13);
+  --cyan:#57cabb; --cyan-dim:rgba(87,202,187,.12);
+  --blue:#6ba8f0; --blue-dim:rgba(107,168,240,.13);
+  --violet:#b58cf5; --violet-dim:rgba(181,140,245,.13);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scroll-behavior:smooth}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:"PingFang SC","Microsoft YaHei","Hiragino Sans GB",system-ui,sans-serif;
+  font-size:16px;line-height:1.75;
+  -webkit-font-smoothing:antialiased;
+}
+button,a,input,select{touch-action:manipulation}
+
+/* ---- 顶栏 ---- */
+.topbar{
+  position:sticky;top:0;z-index:50;
+  display:flex;align-items:center;gap:12px;
+  padding:10px 14px;
+  background:rgba(14,21,18,.92);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line2);
+}
+.topbar .brand{font-weight:800;font-size:15px;color:var(--gold);white-space:nowrap;display:flex;align-items:center;gap:6px}
+.topbar .brand::before{content:"♠";font-weight:400}
+.topbar nav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;margin-left:auto}
+.topbar nav::-webkit-scrollbar{display:none}
+.topbar nav a{
+  flex:0 0 auto;padding:7px 13px;border-radius:9px;
+  font-size:14px;color:var(--text2);text-decoration:none;white-space:nowrap;
+}
+.topbar nav a:active,.topbar nav a:hover{background:var(--panel2);color:var(--text)}
+
+/* ---- 版式 ---- */
+.wrap{max-width:860px;margin:0 auto;padding:6px 16px calc(70px + env(safe-area-inset-bottom,0px))}
+section{scroll-margin-top:64px;margin-top:44px}
+.sec-head{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.sec-no{
+  font-size:12px;font-weight:800;color:#191408;
+  background:linear-gradient(160deg,#f3d689,var(--gold));
+  padding:3px 9px;border-radius:6px;flex:0 0 auto;
+}
+h2{margin:0;font-size:23px;line-height:1.3}
+.sec-sub{color:var(--muted);font-size:14px;margin:0 0 18px;padding-left:2px}
+
+.card{
+  background:linear-gradient(168deg,var(--panel),#101a15);
+  border:1px solid var(--line);border-radius:14px;
+  padding:18px 16px;margin-bottom:14px;
+}
+.card h3{margin:0 0 10px;font-size:17px;color:var(--gold);display:flex;align-items:center;gap:8px}
+.card h3::before{content:"";width:3px;height:16px;border-radius:2px;background:var(--gold)}
+.card p{margin:0 0 10px;color:var(--text2);font-size:15px}
+.card p:last-child{margin-bottom:0}
+.card b{color:var(--text)}
+
+/* ---- Hero ---- */
+.hero{padding:30px 0 4px}
+.hero .kicker{
+  display:inline-block;font-size:12.5px;letter-spacing:2px;color:var(--cyan);
+  border:1px solid rgba(87,202,187,.35);background:var(--cyan-dim);
+  padding:3px 12px;border-radius:999px;margin-bottom:14px;
+}
+.hero h1{margin:0 0 14px;font-size:30px;line-height:1.3}
+.hero h1 em{font-style:normal;color:var(--gold)}
+.hero .lead{margin:0;font-size:16.5px;color:var(--text2);line-height:1.8}
+.hero .lead b{color:var(--gold)}
+
+/* 数字强调块 */
+.big-idea{
+  margin:20px 0 0;padding:16px;
+  border-radius:14px;
+  background:linear-gradient(150deg,rgba(230,189,92,.14),rgba(230,189,92,.03));
+  border:1px solid rgba(230,189,92,.3);
+  font-size:16.5px;color:var(--text);
+}
+.big-idea b{color:var(--gold)}
+
+/* ---- 五类牌 ---- */
+.pill-list{counter-reset:pill}
+.pill{
+  position:relative;display:flex;gap:14px;align-items:flex-start;
+  background:linear-gradient(168deg,var(--panel),#101a15);
+  border:1px solid var(--line);border-radius:14px;
+  padding:16px;margin-bottom:12px;
+}
+.pill::before{counter-increment:pill;content:counter(pill);
+  flex:0 0 34px;width:34px;height:34px;border-radius:10px;
+  display:grid;place-items:center;
+  font-weight:800;font-size:15px;color:#191408;
+  background:linear-gradient(160deg,#f3d689,var(--gold));
+}
+.pill .bd{flex:1;min-width:0}
+.pill h3{margin:0 0 6px;font-size:16.5px}
+.pill h3 .n{color:var(--gold)}
+.pill p{margin:0 0 6px;font-size:14.5px;color:var(--text2)}
+.pill p:last-child{margin-bottom:0}
+.pill .why{padding:8px 12px;border-radius:10px;background:var(--bg);border-left:2px solid var(--cyan);font-size:13.5px;color:var(--muted);margin-top:8px}
+.pill .why b{color:var(--cyan);font-weight:600}
+.pill:nth-child(1) .why{border-color:var(--violet)}.pill:nth-child(1) .why b{color:var(--violet)}
+.pill:nth-child(2) .why{border-color:var(--gold)}.pill:nth-child(2) .why b{color:var(--gold)}
+.pill:nth-child(3) .why{border-color:var(--red)}.pill:nth-child(3) .why b{color:var(--red)}
+.pill:nth-child(4) .why{border-color:var(--green)}.pill:nth-child(4) .why b{color:var(--green)}
+
+/* ---- 三步法 ---- */
+.steps{display:flex;flex-direction:column;gap:12px}
+.step{
+  display:flex;gap:14px;align-items:flex-start;
+  background:linear-gradient(168deg,var(--panel),#101a15);
+  border:1px solid var(--line);border-radius:14px;padding:16px;
+}
+.step .no{
+  flex:0 0 40px;width:40px;height:40px;border-radius:12px;
+  display:grid;place-items:center;font-weight:800;font-size:15px;
+  background:var(--cyan-dim);color:var(--cyan);border:1px solid rgba(87,202,187,.35);
+}
+.step h3{margin:0 0 6px;font-size:16px}
+.step p{margin:0;font-size:14.5px;color:var(--text2)}
+.step .ex{margin-top:8px;padding:8px 12px;border-radius:10px;background:var(--bg);border-left:2px solid var(--gold);font-size:13.5px;color:var(--muted)}
+.step .ex b{color:var(--gold);font-weight:600}
+
+/* ---- 口诀 ---- */
+.quote{
+  background:linear-gradient(150deg,rgba(230,189,92,.12),rgba(230,189,92,.02));
+  border:1px solid rgba(230,189,92,.26);border-radius:14px;
+  padding:14px 16px;margin-bottom:10px;
+}
+.quote .s{font-size:17.5px;font-weight:800;color:var(--gold);margin-bottom:5px}
+.quote .w{font-size:14.5px;color:var(--text2);line-height:1.7}
+.quote .w b{color:var(--text)}
+
+/* ---- 规则速查表 ---- */
+table.tbl{width:100%;border-collapse:collapse;font-size:14px}
+table.tbl th,table.tbl td{padding:9px 10px;border-bottom:1px solid var(--line2);text-align:left;vertical-align:top}
+table.tbl th{color:var(--muted);font-size:12.5px;font-weight:600;white-space:nowrap}
+table.tbl td.k{color:var(--text);font-weight:600;white-space:nowrap}
+
+/* ---- 记牌器 ---- */
+.tool{
+  background:linear-gradient(170deg,var(--panel),#101a15);
+  border:1px solid var(--line);border-radius:16px;overflow:hidden;
+}
+.tool-head{padding:14px 16px;border-bottom:1px solid var(--line)}
+.tool-head h3{margin:0;font-size:17px;color:var(--gold)}
+.tool-head .hint{font-size:13px;color:var(--muted);margin-top:4px}
+.tool-body{padding:14px 12px 18px}
+
+.ctrl-row{display:flex;gap:8px 14px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.ctrl{display:flex;align-items:center;gap:7px;font-size:14px;color:var(--text2)}
+.ctrl select{
+  background:var(--bg);color:var(--text);border:1px solid var(--line);
+  border-radius:9px;padding:7px 10px;font-size:16px;font-family:inherit;min-height:40px;
+}
+.ctrl select:focus{outline:none;border-color:var(--gold)}
+.tag{display:inline-block;padding:3px 10px;border-radius:7px;font-size:13px;font-weight:600;white-space:nowrap;border:1px solid transparent}
+.tag-y{background:var(--gold-dim);color:var(--gold);border-color:rgba(230,189,92,.3)}
+.tag-g{background:var(--green-dim);color:var(--green);border-color:rgba(79,191,120,.3)}
+.tag-c{background:var(--cyan-dim);color:var(--cyan);border-color:rgba(87,202,187,.3)}
+
+/* 记牌表格 · 桌面 */
+.memo-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:14px}
+table.memo{border-collapse:separate;border-spacing:0;width:100%;min-width:620px}
+table.memo th,table.memo td{border-bottom:1px solid var(--line2);padding:0}
+table.memo thead th{background:var(--panel2);color:var(--muted);font-size:12.5px;font-weight:600;padding:9px 6px;text-align:center;white-space:nowrap}
+table.memo thead th:first-child{text-align:left;padding-left:12px;border-top-left-radius:9px}
+table.memo thead th:last-child{border-top-right-radius:9px}
+table.memo tbody th{background:var(--panel2);color:var(--text);font-weight:700;font-size:14px;padding:5px 12px;text-align:left;white-space:nowrap}
+table.memo tbody tr:hover td{background:rgba(255,255,255,.025)}
+table.memo tbody tr.keyrow th{background:linear-gradient(90deg,rgba(230,189,92,.15),var(--panel2) 72%);color:var(--gold)}
+table.memo td{text-align:center;padding:3px}
+table.memo td.res{font-weight:700;font-size:15px;color:var(--text2);background:rgba(255,255,255,.028)}
+table.memo td.res.zero{color:var(--muted);opacity:.5}
+table.memo td.res.danger{color:var(--red)}
+table.memo td.res.key{color:var(--cyan)}
+table.memo td.res.low{color:var(--green)}
+.num-in{
+  width:52px;height:34px;border-radius:8px;border:1px solid var(--line);
+  background:var(--bg);color:var(--text);
+  font-size:16px;font-weight:600;text-align:center;padding:0;
+  -moz-appearance:textfield;
+}
+.num-in::-webkit-outer-spin-button,.num-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.num-in:focus{outline:none;border-color:var(--gold);color:var(--gold);background:rgba(230,189,92,.07)}
+.cell{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:44px;height:34px;border-radius:8px;cursor:pointer;user-select:none;
+  background:var(--panel2);border:1px solid var(--line);
+  color:var(--text2);font-size:15px;font-weight:600;transition:all .12s;
+}
+.cell.has{background:var(--gold-dim);border-color:rgba(230,189,92,.45);color:var(--gold)}
+.cell.zero{opacity:.4}
+.step-btn{
+  width:36px;height:36px;border-radius:9px;border:1px solid var(--line);
+  background:var(--panel2);color:var(--text2);
+  font-size:18px;font-weight:700;line-height:1;
+  display:none;place-items:center;cursor:pointer;user-select:none;
+}
+.stepper{display:inline-flex;align-items:center;gap:5px}
+
+/* 洞察 */
+.insights h4{margin:14px 0 8px;font-size:14.5px;color:var(--cyan);display:flex;align-items:center;gap:7px}
+.insights h4::before{content:"◆";font-size:10px}
+.insights h4.gold{color:var(--gold)}
+.insights ul{margin:0;padding-left:18px}
+.insights li{font-size:14.5px;color:var(--text2);margin-bottom:7px;line-height:1.7}
+.insights li:last-child{margin-bottom:0}
+.insights li b{color:var(--text)}
+.insights li.warn b{color:var(--red)}
+.insights li.good b{color:var(--green)}
+.insights .tag{font-size:12px;padding:2px 8px}
+
+/* ---- 页脚 ---- */
+footer{
+  margin-top:56px;padding:22px 0 6px;border-top:1px solid var(--line2);
+  font-size:13px;color:var(--muted);line-height:1.8;
+}
+
+/* ---- 回顶 ---- */
+.to-top{
+  position:fixed;right:16px;bottom:calc(18px + env(safe-area-inset-bottom,0px));
+  width:48px;height:48px;border-radius:50%;
+  border:1px solid var(--line);background:rgba(21,32,27,.94);
+  backdrop-filter:blur(8px);color:var(--gold);font-size:20px;
+  display:none;place-items:center;cursor:pointer;z-index:60;
+}
+.to-top.show{display:grid}
+
+/* ===== 桌面 ===== */
+@media (min-width:760px){
+  .wrap{padding:10px 28px 90px}
+  body{font-size:16px}
+  .hero h1{font-size:38px}
+  .topbar{padding:12px 28px;gap:20px}
+  .topbar nav a{font-size:14.5px}
+  section{margin-top:60px}
+  h2{font-size:28px}
+  .cards2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .steps{flex-direction:row}
+  .step{flex:1}
+  .pill{padding:18px}
+  .quote{padding:16px 18px}
+  .ctrl-row{margin-bottom:16px}
+}
+@media (min-width:760px){ .quote-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px} .quote{margin-bottom:0} }
+
+/* ===== 手机：记牌表改卡片 ===== */
+@media (max-width:759px){
+  .memo-wrap{overflow-x:visible;margin-bottom:10px}
+  table.memo{min-width:0;display:block}
+  table.memo thead{display:none}
+  table.memo tbody{display:block}
+  table.memo tbody tr{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    grid-template-areas:"name name" "mine unk" "up opp" "down down";
+    gap:6px 8px;padding:10px 12px;
+    border-bottom:1px solid var(--line2);align-items:center;
+  }
+  table.memo tbody th{
+    grid-area:name;display:flex;align-items:baseline;gap:8px;
+    background:none;padding:0;font-size:17px;
+  }
+  table.memo tbody th small{font-size:11.5px;color:var(--muted);font-weight:500}
+  table.memo tbody td{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0;min-width:0;
+  }
+  table.memo tbody td::before{
+    content:attr(data-short);
+    font-size:13px;color:var(--muted);flex:0 0 auto;
+  }
+  table.memo tbody td[data-role=mine]{grid-area:mine;background:rgba(255,255,255,.035);border-radius:9px;padding:4px 10px}
+  table.memo tbody td[data-role=unk]{grid-area:unk;background:var(--gold-dim);border:1px solid rgba(230,189,92,.3);border-radius:9px;padding:4px 10px;font-size:17px}
+  table.memo tbody td[data-role=unk]::before{color:var(--gold)}
+  table.memo tbody td[data-role=up]{grid-area:up}
+  table.memo tbody td[data-role=opp]{grid-area:opp}
+  table.memo tbody td[data-role=down]{grid-area:down}
+  .num-in{width:100%;max-width:110px;height:38px}
+  .cell{width:40px;height:38px;font-size:16px}
+  .step-btn{display:grid}
+}
+@media (hover:hover) and (pointer:fine){
+  .cell:hover{border-color:var(--gold);color:var(--gold)}
+  .step-btn{display:none}
+}
+
+/* ===== 打印 ===== */
+@media print{
+  :root{--bg:#fff;--panel:#fff;--panel2:#f4f6f5;--panel3:#eceff0;--line:#c7cecb;--line2:#e0e5e2;
+    --text:#14171b;--text2:#2f353c;--muted:#61686f;--gold:#8a6300;
+    --gold-dim:rgba(138,99,0,.08);--red:#a33;--green:#1a6c2e;--cyan:#06626b;--violet:#5b32a8}
+  body{background:#fff;font-size:11.5pt}
+  .topbar,.to-top,.tool .ctrl-row,.memo-wrap .stepper{display:none!important}
+  .card,.pill,.step,.quote,.tool{box-shadow:none;break-inside:avoid}
+  table.memo tbody td[data-role=unk],table.memo tbody td.res{background:none!important}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">掼蛋记牌速成</div>
+  <nav>
+    <a href="#what">记什么</a>
+    <a href="#how">怎么记</a>
+    <a href="#quote">口诀</a>
+    <a href="#tool">记牌器</a>
+    <a href="#rules">规则速查</a>
+  </nav>
+</div>
+
+<div class="wrap">
+
+  <!-- ===== Hero ===== -->
+  <header class="hero">
+    <span class="kicker">GUANDAN · 108 张 · 2 v 2</span>
+    <h1>掼蛋记牌，不用 108 张——<br><em>只记 20 张关键牌</em></h1>
+    <p class="lead">
+      全记既不可能，也没必要。高手只盯「王、级牌、A、5 和 10、断张」这 5 类牌，
+      打的时候<b>只做减法</b>。这份手册三分钟读完，配一个手机记牌器，边打边练。
+    </p>
+    <div class="big-idea">
+      ❝ 王牌、级牌、A 是左右牌局的大牌，10 和 5 是顺子的节点牌，断张最容易出炸弹。
+      记住全手牌难度很大，也没有太多意义。<b>—— 王春国</b>（全国扑克项目比赛裁判长、首届北京掼蛋公开赛裁判长）
+    </div>
+  </header>
+
+  <!-- ===== 1 记什么 ===== -->
+  <section id="what">
+    <div class="sec-head"><span class="sec-no">01</span><h2>只记这 5 类牌</h2></div>
+    <p class="sec-sub">别的牌先全部放弃，就从这 5 类开始</p>
+
+    <div class="pill-list">
+      <div class="pill">
+        <div class="bd">
+          <h3>王 · <span class="n">4 张</span>（大王 2 + 小王 2）</h3>
+          <p>王在谁手里，单牌就听谁的。王走光了，单牌对拼没人管——你手里的小单张就能放心出。</p>
+          <div class="why"><b>怎么记</b>：大小王每露一张，心里划掉一张。「王还剩 2 张：一大一小」就够了。</div>
+        </div>
+      </div>
+
+      <div class="pill">
+        <div class="bd">
+          <h3>级牌 · <span class="n">8 张</span>（本局打几就是几）</h3>
+          <p>除了王就属它大。打 5 时，4 个 5 能压 4 个 A。它还是炸弹的头号来源。</p>
+          <div class="why"><b>怎么记</b>：开局选好级牌后，只记「级牌出过几张了」。剩得多 = 场上大概率还藏着级牌炸弹。</div>
+        </div>
+      </div>
+
+      <div class="pill">
+        <div class="bd">
+          <h3>A · <span class="n">8 张</span>（单牌第二梯队）</h3>
+          <p>最大顺子 10-J-Q-K-A、最大木板 QQ-KK-AA 都靠 A 封顶。A 出光了，你的小对子就敢放出去打。</p>
+          <div class="why"><b>怎么记</b>：熟练记王和级牌之后，加记 A 的余数。顺手中再带上 K。</div>
+        </div>
+      </div>
+
+      <div class="pill">
+        <div class="bd">
+          <h3>5 和 10 · <span class="n">各 8 张</span>（顺子的必经之路）</h3>
+          <p>所有顺子、同花顺都绕不开 5 或 10。这两个点出光，对手就组不出任何顺子，你可以彻底不想顺子这回事。</p>
+          <div class="why"><b>怎么记</b>：记到「5 断了没？10 断了没？」这一层就够用，不必记到张。</div>
+        </div>
+      </div>
+
+      <div class="pill">
+        <div class="bd">
+          <h3>断张 · <span class="n">你手里 0 张的点</span></h3>
+          <p>某个点你一张都没有，说明它的 8 张全在别人手里——很可能抱团成了炸弹。</p>
+          <div class="why"><b>怎么记</b>：开局理牌时看一眼即可，天然不用花脑力。守则：断张点的小牌别主动出，那是在给对手的炸弹送线索。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 2 怎么记 ===== -->
+  <section id="how">
+    <div class="sec-head"><span class="sec-no">02</span><h2>怎么记才不累：三步法</h2></div>
+    <p class="sec-sub">核心只有一条——记「还剩几张」，不记「谁出了什么」</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="no">1</div>
+        <div>
+          <h3>开局 30 秒：数自己的牌</h3>
+          <p>理牌时顺手数清楚：我几个王、几张级牌、几张 A、<b>哪些点我一张都没有</b>（断张）。剩下的全在外面 81 张里。</p>
+          <div class="ex"><b>例</b>：手里 1 大王 0 小王、2 张级牌、3 张 A、没有 7 → 外面还有 2 王、6 级牌、5 A、8 张 7。</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="no">2</div>
+        <div>
+          <h3>每轮只做一次减法</h3>
+          <p>不背流水账。谁打出一个 A，你心里那个「A 剩 5」改成「剩 4」，一次只动一两个数，其余时间放空。</p>
+          <div class="ex"><b>例</b>：上家出 10-10 → 心里「10 剩 6」。就这一个动作，过。</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="no">3</div>
+        <div>
+          <h3>记不住，就只盯上家</h3>
+          <p>裁判长的偷懒诀窍：先只记上家一家。你的上家出的牌直接影响你这轮怎么压，先记他；熟了再扩展到其他两家。</p>
+          <div class="ex"><b>例</b>：上家一直不接对子 → 他手里没大对子，你的中对子可以放心出。这就够用了。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <h3>辅助小招</h3>
+      <p><b>线下局用手指</b>：左手数王和级牌、右手数 A，出一张屈一根，零心算负担。</p>
+      <p><b>照自己的牌选重点</b>：牌好要冲头游，精力放在规划自己的出牌；牌一般就把记牌重点放在保队友、防对手上。都记 = 都记不住。</p>
+    </div>
+  </section>
+
+  <!-- ===== 3 口诀 ===== -->
+  <section id="quote">
+    <div class="sec-head"><span class="sec-no">03</span><h2>10 句口诀，直接抄作业</h2></div>
+    <p class="sec-sub">每句一句话解释，残局照着做就行</p>
+
+    <div class="quote-grid">
+      <div class="quote"><div class="s">情况不明，对子先行</div><div class="w">开局互相摸底，<b>先出对子</b>最安全——不容易被大单牌压死，还能试探对手有没有大对子。</div></div>
+      <div class="quote"><div class="s">有王打单张，无王三带二</div><div class="w">手里有大王，出<b>单张</b>随时能收回牌权；没王就改出<b>三带二</b>，不让单牌被白吃。</div></div>
+      <div class="quote"><div class="s">封顶要封到顶</div><div class="w">压对手的顺子就出 <b>10-J-Q-K-A</b>。只出 9-10-J-Q-K 等于没压，还白送一手牌权。</div></div>
+      <div class="quote"><div class="s">枪不打 4</div><div class="w">对手剩 4 张<b>别用炸弹</b>：他真是炸你炸不动，不是炸他一把也走不完。把炸留给关键时刻。</div></div>
+      <div class="quote"><div class="s">剩 5 出对子</div><div class="w">对手剩 5 张，出<b>对子</b>堵一把：他接了就剩 3 张，绝不可能再有炸弹；不接说明他在憋大招。</div></div>
+      <div class="quote"><div class="s">剩 6 出三张</div><div class="w">对手剩 6 张，出<b>三不带</b>最稳，逼他把手里的整套牌拆散。</div></div>
+      <div class="quote"><div class="s">打 7 不打 8</div><div class="w">对手剩 7 张<b>还要堵</b>一把，防炸弹沉底；剩 8 张可以先缓一步。</div></div>
+      <div class="quote"><div class="s">双上远胜头游</div><div class="w">掼蛋是 2v2：自己和队友<b>一起走完</b>比一个人抢头游重要。队友打得顺，就别压他的牌。</div></div>
+      <div class="quote"><div class="s">轻易不接对家</div><div class="w">没有九成把握<b>别接队友的牌</b>，一接就打断他的节奏，还暴露你的牌型。</div></div>
+      <div class="quote"><div class="s">残局只记张数</div><div class="w">最后阶段别再记是什么牌了，<b>只记每家剩几张</b>：他剩 1 张你打对子，剩 2 张你打单张，一步卡死他。</div></div>
+    </div>
+  </section>
+
+  <!-- ===== 4 记牌器 ===== -->
+  <section id="tool">
+    <div class="sec-head"><span class="sec-no">04</span><h2>手机记牌器</h2></div>
+    <p class="sec-sub">三步用法：开局填手牌 → 有人出牌就点一下 → 看结论出牌</p>
+
+    <div class="tool">
+      <div class="tool-head">
+        <h3>实战记牌台</h3>
+        <div class="hint">第 1 步：把「我手牌」每个点数填上（只填一次）；第 2 步：谁出牌就点谁的格子 <b>+1</b>（手机上还有 −/+ 按钮，电脑上右键 −1）；第 3 步：下面的结论自动算出来。数据自动保存在手机里，刷新不丢。</div>
+      </div>
+      <div class="tool-body">
+        <div class="ctrl-row">
+          <div class="ctrl">
+            <span>本局级牌</span>
+            <select id="lv-select"></select>
+          </div>
+          <div class="ctrl"><span>我手牌</span><span class="tag tag-g" id="my-left">0 / 27</span></div>
+          <div class="ctrl"><span>对手手里共</span><span class="tag tag-c" id="opp-left">81 张</span></div>
+          <div class="ctrl">
+            <span>显示</span>
+            <button class="tag tag-y" id="btn-filter" style="cursor:pointer;font-family:inherit">全部 15 点</button>
+          </div>
+        </div>
+
+        <div class="memo-wrap">
+          <table class="memo" id="memo-table">
+            <thead>
+              <tr>
+                <th>点数</th>
+                <th>我手牌(开局)</th>
+                <th>上家已出</th>
+                <th>对家已出</th>
+                <th>下家已出</th>
+                <th>对手还剩</th>
+              </tr>
+            </thead>
+            <tbody id="memo-body"></tbody>
+          </table>
+        </div>
+
+        <div class="insights" style="margin-top:16px">
+          <h4>现在该知道的事</h4>
+          <ul id="ins-remaining"></ul>
+          <h4 class="gold">现在该怎么打</h4>
+          <ul id="ins-advice"></ul>
+        </div>
+
+        <div style="margin-top:16px">
+          <button class="tag tag-y" id="btn-reset" style="cursor:pointer;font-family:inherit;padding:9px 18px;font-size:14px">重置记牌器</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 5 规则速查 ===== -->
+  <section id="rules">
+    <div class="sec-head"><span class="sec-no">05</span><h2>规则速查</h2></div>
+    <p class="sec-sub">新最容易记错、翻车最多的几条</p>
+
+    <div class="cards2">
+      <div class="card">
+        <h3>基本盘</h3>
+        <table class="tbl">
+          <tbody>
+            <tr><td class="k">牌</td><td>两副共 108 张，4 人 2v2，每人 27 张</td></tr>
+            <tr><td class="k">级牌</td><td>打几就选几。级牌<b>比 A 大、比王小</b>：打 5 时 5 &gt; A</td></tr>
+            <tr><td class="k">逢人配</td><td><b>红桃级牌</b>（2 张）是万能牌，能替除王以外的任何牌凑炸弹、同花顺。它一旦露面，「看不见的炸弹」就少了一份</td></tr>
+            <tr><td class="k">胜负</td><td>头游+二游=升 3 级；头游+三游=升 2 级；头游+末游=升 1 级</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <h3>大小顺序</h3>
+        <table class="tbl">
+          <tbody>
+            <tr><td class="k">单张</td><td>大王 &gt; 小王 &gt; 级牌 &gt; A &gt; K &gt; … &gt; 2</td></tr>
+            <tr><td class="k">炸弹</td><td>天王炸(4 王) &gt; 8 张炸 &gt; 7 张 &gt; 6 张 &gt; 同花顺 &gt; 5 张炸 &gt; 4 张炸</td></tr>
+            <tr><td class="k">普通牌型</td><td>单张 / 对 / 三张 / 三带二 / 顺子(5张) / 木板(3连对) / 钢板(2连三)——必须<b>同牌型同张数</b>才比大小</td></tr>
+            <tr><td class="k">报牌</td><td>剩 10 张及以下要报张数——所以残局各家张数是公开的，直接用「残局只记张数」口诀</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    记牌要点参考：北京日报《专家教一手｜掼蛋需记牌》（全国扑克项目比赛裁判长、首届北京掼蛋(掼牌)公开赛裁判长王春国）、掼蛋公开攻略资料与实战经验综合整理。
+    各地区细则略有差异，以实际牌局规则为准。本页可离线使用，数据仅保存在你自己的手机浏览器里。
+  </footer>
+
+</div>
+
+<button class="to-top" id="to-top" type="button" aria-label="回到顶部">↑</button>
+
+<script>
+/* ===== 记牌器：只做一件事——算出「每个点还有几张在对手手里」 =====
+   对手手中某点余量 = 该点总数(8或2) − 我开局手牌 − 三家已打出
+   （我已打出的牌包含在我开局手牌里，所以不用记自己的出牌） ===== */
+(function () {
+  'use strict';
+
+  const HAND_SIZE = 27;
+  const STORE_KEY = 'guandan-guide-v1';
+
+  const RANKS = [
+    { k: 'BJ', label: '大王', total: 2, group: 'joker', sort: 16 },
+    { k: 'SJ', label: '小王', total: 2, group: 'joker', sort: 15 },
+    { k: 'A',  label: 'A',  total: 8, group: 'num', sort: 14 },
+    { k: 'K',  label: 'K',  total: 8, group: 'num', sort: 13 },
+    { k: 'Q',  label: 'Q',  total: 8, group: 'num', sort: 12 },
+    { k: 'J',  label: 'J',  total: 8, group: 'num', sort: 11 },
+    { k: '10', label: '10', total: 8, group: 'num', sort: 10 },
+    { k: '9',  label: '9',  total: 8, group: 'num', sort: 9 },
+    { k: '8',  label: '8',  total: 8, group: 'num', sort: 8 },
+    { k: '7',  label: '7',  total: 8, group: 'num', sort: 7 },
+    { k: '6',  label: '6',  total: 8, group: 'num', sort: 6 },
+    { k: '5',  label: '5',  total: 8, group: 'num', sort: 5 },
+    { k: '4',  label: '4',  total: 8, group: 'num', sort: 4 },
+    { k: '3',  label: '3',  total: 8, group: 'num', sort: 3 },
+    { k: '2',  label: '2',  total: 8, group: 'num', sort: 2 }
+  ];
+
+  const OPP = [
+    { k: 'up',   name: '上家', role: '对手', short: '上家' },
+    { k: 'opp',  name: '对家', role: '队友', short: '对家' },
+    { k: 'down', name: '下家', role: '对手', short: '下家' }
+  ];
+
+  const LEVELS = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+  const KEY_RANKS = ['A', 'K', '5', '10'];
+
+  const state = {
+    level: '5',
+    mine: {},
+    played: { up: {}, opp: {}, down: {} },
+    onlyKey: false,
+    touched: false
+  };
+  RANKS.forEach(r => { state.mine[r.k] = 0; });
+
+  const $ = s => document.querySelector(s);
+  const memoBody = $('#memo-body');
+
+  const rankByKey = k => RANKS.find(r => r.k === k);
+  const playedOf = (p, rk) => state.played[p][rk] || 0;
+  const oppPlayedOf = rk => OPP.reduce((s, p) => s + playedOf(p.k, rk), 0);
+
+  /* 对手手里还剩几张该点 */
+  function unknownOf(rk) {
+    const r = rankByKey(rk);
+    return Math.max(0, r.total - state.mine[rk] - oppPlayedOf(rk));
+  }
+  function myHandTotal() {
+    return RANKS.reduce((s, r) => s + state.mine[r.k], 0);
+  }
+  function oppHandLeft(pKey) {
+    return HAND_SIZE - RANKS.reduce((s, r) => s + playedOf(pKey, r.k), 0);
+  }
+  function minOppHand() {
+    return Math.min(oppHandLeft('up'), oppHandLeft('down'));
+  }
+  function keyRanks() {
+    const arr = [state.level, 'A', 'K'];
+    ['5', '10'].forEach(k => { if (arr.indexOf(k) === -1) arr.push(k); });
+    return arr;
+  }
+  function isKey(rk) { return rk === state.level || KEY_RANKS.indexOf(rk) !== -1; }
+  /* 成炸风险：只看级牌和 A/K，余 3 张以上才提示 */
+  function bombRiskOf(rk) {
+    if (rk === 'BJ' || rk === 'SJ') return false;
+    if (rk !== state.level && rk !== 'A' && rk !== 'K') return false;
+    return unknownOf(rk) >= 3;
+  }
+
+  /* ---------- 存取 ---------- */
+  function save() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (!raw) return;
+      const d = JSON.parse(raw);
+      if (d && typeof d === 'object') {
+        if (LEVELS.indexOf(d.level) !== -1) state.level = d.level;
+        if (d.mine) RANKS.forEach(r => {
+          const v = parseInt(d.mine[r.k], 10);
+          state.mine[r.k] = isNaN(v) ? 0 : Math.max(0, Math.min(r.total, v));
+        });
+        if (d.played) OPP.forEach(p => {
+          state.played[p.k] = {};
+          RANKS.forEach(r => {
+            const v = parseInt(d.played[p.k] && d.played[p.k][r.k], 10);
+            state.played[p.k][r.k] = isNaN(v) ? 0 : Math.max(0, Math.min(r.total, v));
+          });
+        });
+        state.onlyKey = !!d.onlyKey;
+        state.touched = !!d.touched;
+      }
+    } catch (e) {}
+  }
+
+  /* ---------- 建表 ---------- */
+  function buildMemoTable() {
+    memoBody.innerHTML = '';
+    RANKS.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.dataset.rank = r.k;
+
+      const th = document.createElement('th');
+      th.innerHTML = r.label + (r.group === 'joker' ? '<small>王</small>' : '');
+      tr.appendChild(th);
+
+      // 我手牌（输入一次）
+      const tdMine = document.createElement('td');
+      tdMine.dataset.role = 'mine';
+      tdMine.dataset.short = '我手牌';
+      const inp = document.createElement('input');
+      inp.type = 'number';
+      inp.className = 'num-in';
+      inp.min = 0; inp.max = r.total;
+      inp.dataset.rank = r.k;
+      inp.setAttribute('inputmode', 'numeric');
+      tdMine.appendChild(inp);
+      tr.appendChild(tdMine);
+
+      // 三家已出：点击+1 / 右键−1 / 手机±按钮
+      OPP.forEach(p => {
+        const td = document.createElement('td');
+        td.dataset.role = p.k;
+        td.dataset.short = p.name;
+
+        const stepper = document.createElement('span');
+        stepper.className = 'stepper';
+
+        const dec = document.createElement('button');
+        dec.type = 'button';
+        dec.className = 'step-btn';
+        dec.textContent = '−';
+        dec.dataset.act = 'dec'; dec.dataset.player = p.k; dec.dataset.rank = r.k;
+        dec.setAttribute('aria-label', p.name + ' ' + r.label + ' 减 1');
+
+        const cell = document.createElement('span');
+        cell.className = 'cell';
+        cell.dataset.player = p.k; cell.dataset.rank = r.k;
+        cell.textContent = '0';
+        cell.title = p.name + '出 ' + r.label + '：点一下 +1' + (p.k ? '，电脑右键 −1' : '');
+
+        const inc = document.createElement('button');
+        inc.type = 'button';
+        inc.className = 'step-btn';
+        inc.textContent = '+';
+        inc.dataset.act = 'inc'; inc.dataset.player = p.k; inc.dataset.rank = r.k;
+        inc.setAttribute('aria-label', p.name + ' ' + r.label + ' 加 1');
+
+        stepper.appendChild(dec);
+        stepper.appendChild(cell);
+        stepper.appendChild(inc);
+        td.appendChild(stepper);
+        tr.appendChild(td);
+      });
+
+      // 对手余量
+      const tdUnk = document.createElement('td');
+      tdUnk.className = 'res';
+      tdUnk.dataset.role = 'unk';
+      tdUnk.dataset.rank = r.k;
+      tdUnk.dataset.short = '对手还剩';
+      tr.appendChild(tdUnk);
+
+      memoBody.appendChild(tr);
+    });
+  }
+
+  /* ---------- 渲染 ---------- */
+  function render() {
+    RANKS.forEach(r => {
+      const unk = unknownOf(r.k);
+      const keyRow = isKey(r.k);
+
+      const tr = memoBody.querySelector('tr[data-rank="' + r.k + '"]');
+      if (tr) tr.style.display = (state.onlyKey && !keyRow) ? 'none' : '';
+
+      const inp = memoBody.querySelector('input[data-rank="' + r.k + '"]');
+      if (document.activeElement !== inp) inp.value = state.mine[r.k] || '';
+
+      const tdUnk = memoBody.querySelector('td[data-role="unk"][data-rank="' + r.k + '"]');
+      tdUnk.textContent = unk;
+      tdUnk.className = 'res';
+      if (unk === 0) tdUnk.classList.add('zero');
+      else if (bombRiskOf(r.k)) tdUnk.classList.add('danger');
+      else if (unk <= 1) tdUnk.classList.add('low');
+      else if (keyRow) tdUnk.classList.add('key');
+
+      tr.classList.toggle('keyrow', keyRow);
+
+      OPP.forEach(p => {
+        const cell = memoBody.querySelector('.cell[data-player="' + p.k + '"][data-rank="' + r.k + '"]');
+        const v = playedOf(p.k, r.k);
+        cell.textContent = v;
+        cell.classList.toggle('has', v > 0);
+        cell.classList.toggle('zero', v === 0);
+      });
+    });
+
+    $('#my-left').textContent = myHandTotal() + ' / 27';
+    const oppPlayed = RANKS.reduce((s, r) => s + oppPlayedOf(r.k), 0);
+    $('#opp-left').textContent = (3 * HAND_SIZE - oppPlayed) + ' 张';
+
+    renderInsights();
+    save();
+  }
+
+  /* ---------- 洞察：说人话 ---------- */
+  function renderInsights() {
+    const U = {};
+    RANKS.forEach(r => { U[r.k] = unknownOf(r.k); });
+
+    const jokers = U['BJ'] + U['SJ'];
+    const lv = state.level;
+    const lvU = U[lv], aU = U['A'], kU = U['K'], fU = U['5'], tU = U['10'];
+
+    const exhausted = RANKS.filter(r => U[r.k] === 0 && r.group === 'num').map(r => r.label);
+    /* 断张警示只在填了手牌后才有意义（全 0 时一切皆断张） */
+    const notMine = myHandTotal() === 0 ? [] :
+      RANKS.filter(r => state.mine[r.k] === 0 && r.group === 'num' && U[r.k] >= 4).map(r => r.label);
+
+    const R = [];
+    R.push('王还剩 <b>' + jokers + '</b> 张（大王 ' + U['BJ'] + '、小王 ' + U['SJ'] + '）' +
+      (jokers === 0 ? ' <span class="tag tag-g">王已走光</span>你的小单张随便出' : '谁拿着最后的王，单牌就听谁的'));
+    R.push('级牌（' + lv + '）还剩 <b>' + lvU + '</b> 张' +
+      (lvU >= 4 ? ' <span class="tag tag-y">小心级牌炸弹</span>小对子别乱出' : lvU === 0 ? ' 级牌炸弹已经没指望了' : ' 炸弹威胁不大'));
+    R.push('A 还剩 <b>' + aU + '</b> 张、K 还剩 <b>' + kU + '</b> 张' +
+      (aU <= 2 ? ' <span class="tag tag-g">A 快没了</span>顺子封顶威胁小，对子可以打' : ' 大牌还在别人手里，出牌留个心眼'));
+    if (fU === 0 || tU === 0) {
+      const dead = [];
+      if (fU === 0) dead.push('5');
+      if (tU === 0) dead.push('10');
+      R.push('<b>' + dead.join(' 和 ') + '</b> 已经断了 <span class="tag tag-g">对手组不出顺子</span>不用再防顺子');
+    } else {
+      R.push('5 还剩 <b>' + fU + '</b> 张、10 还剩 <b>' + tU + '</b> 张——顺子的路还通着，防顺子要封顶');
+    }
+    if (exhausted.length) {
+      R.push('已经打光的点：<b>' + exhausted.join('、') + '</b>——这些点的顺子、连对都没了');
+    }
+    if (notMine.length) {
+      R.push('你手里 0 张、外面还剩很多：<b>' + notMine.join('、') + '</b> <span class="tag tag-y">可能是炸弹</span>别用这些点的小牌去喂');
+    }
+    if (!state.touched) {
+      R.push('<i>先把「我手牌」填好，有人出牌就点一下格子，上面的结论会自动更新。</i>');
+    }
+    $('#ins-remaining').innerHTML = R.map(i => '<li>' + i + '</li>').join('');
+
+    const A = [];
+    if (jokers > 0) {
+      A.push('<li class="warn">别用小单张接大单——对手手里还有 <b>' + jokers + ' 张王</b></li>');
+    } else {
+      A.push('<li class="good">王走光了——<b>单牌对拼没人管</b>，用小单张抢节奏</li>');
+    }
+    if (lvU >= 4) {
+      A.push('<li class="warn">级牌还剩 <b>' + lvU + ' 张</b>——小对子先别动，防被级牌炸穿</li>');
+    }
+    if (aU <= 2) {
+      A.push('<li class="good">A 只剩 <b>' + aU + ' 张</b>——<b>对子放开打</b>，对手凑不出 A 炸</li>');
+    }
+    if (fU !== 0 || tU !== 0) {
+      A.push('<li>对手出顺子就<b>往死里封</b>：10-J-Q-K-A 或 AAA 压顶，出 9-10-J-Q-K 等于没压</li>');
+    }
+    const oppMin = minOppHand();
+    if (oppMin <= 8 && oppMin > 0) {
+      const tip = oppMin === 4 ? '枪不打 4：<b>别用炸弹</b>，他一把走不完'
+        : oppMin === 5 ? '<b>出对子</b>堵一把：他接了剩 3 张必无炸，不接就是在憋炸'
+        : oppMin === 6 ? '<b>出三不带</b>最稳，逼他拆牌'
+        : oppMin === 7 ? '还要堵一手，防他把炸弹憋到底'
+        : '可以缓一步，但盯住他成套的牌';
+      A.push('<li class="warn">有对手只剩 <b>' + oppMin + ' 张</b>——' + tip + '</li>');
+    }
+    const mateHand = oppHandLeft('opp');
+    if (mateHand > 0 && mateHand <= 10) {
+      const t = mateHand === 1 ? '只打<b>对子以上</b>，堵死对手用单张送他'
+        : mateHand === 2 ? '只打<b>单张和大牌</b>，别给对手出对子的机会'
+        : mateHand === 3 ? '打<b>对子</b>或<b>三不带</b>配合他'
+        : '帮他清路，<b>别压他的牌</b>';
+      A.push('<li class="good">队友还剩 <b>' + mateHand + ' 张</b>——' + t + '，也别用炸弹打断他的牌路</li>');
+    }
+    if (!state.touched) {
+      A.push('<li>没有记录的时候，先按口诀来：<b>情况不明，对子先行</b></li>');
+    }
+    $('#ins-advice').innerHTML = A.join('');
+  }
+
+  /* ---------- 交互 ---------- */
+  function adjust(player, rank, delta) {
+    const max = rankByKey(rank).total;
+    const next = playedOf(player, rank) + delta;
+    if (next > max || next < 0) return;
+    state.played[player][rank] = next;
+    state.touched = true;
+    render();
+  }
+  function pulse(el) {
+    if (el && el.animate) {
+      el.animate(
+        [{ transform: 'translateX(0)' }, { transform: 'translateX(-3px)' }, { transform: 'translateX(3px)' }, { transform: 'translateX(0)' }],
+        { duration: 180 }
+      );
+    }
+  }
+
+  function bind() {
+    memoBody.addEventListener('click', e => {
+      const cell = e.target.closest('.cell');
+      if (cell) {
+        adjust(cell.dataset.player, cell.dataset.rank, 1);
+        return;
+      }
+      const btn = e.target.closest('.step-btn');
+      if (btn) {
+        e.stopPropagation();
+        adjust(btn.dataset.player, btn.dataset.rank, btn.dataset.act === 'inc' ? 1 : -1);
+      }
+    });
+
+    memoBody.addEventListener('contextmenu', e => {
+      const cell = e.target.closest('.cell');
+      if (!cell) return;
+      e.preventDefault();
+      adjust(cell.dataset.player, cell.dataset.rank, -1);
+    });
+
+    memoBody.addEventListener('input', e => {
+      const inp = e.target.closest('input.num-in');
+      if (!inp) return;
+      const rk = inp.dataset.rank;
+      let v = parseInt(inp.value, 10);
+      if (isNaN(v) || v < 0) v = 0;
+      if (v > rankByKey(rk).total) v = rankByKey(rk).total;
+      state.mine[rk] = v;
+      state.touched = true;
+      render();
+    });
+
+    $('#lv-select').addEventListener('change', e => {
+      state.level = e.target.value;
+      render();
+      syncFilterLabel();
+    });
+
+    const filterBtn = $('#btn-filter');
+    function syncFilterLabel() {
+      const n = keyRanks().length;
+      filterBtn.textContent = state.onlyKey ? ('只看关键 ' + n + ' 点') : ('全部 ' + RANKS.length + ' 点');
+    }
+    filterBtn.addEventListener('click', () => {
+      state.onlyKey = !state.onlyKey;
+      syncFilterLabel();
+      render();
+    });
+    syncFilterLabel();
+
+    $('#btn-reset').addEventListener('click', () => {
+      if (!confirm('清空所有记录，重新记一局？')) return;
+      RANKS.forEach(r => { state.mine[r.k] = 0; });
+      OPP.forEach(p => { state.played[p.k] = {}; });
+      state.touched = false;
+      state.onlyKey = false;
+      syncFilterLabel();
+      render();
+    });
+
+    const toTop = $('#to-top');
+    window.addEventListener('scroll', () => {
+      toTop.classList.toggle('show', window.scrollY > 500);
+    }, { passive: true });
+    toTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  }
+
+  function init() {
+    load();
+    const lv = $('#lv-select');
+    lv.innerHTML = LEVELS.map(l => '<option value="' + l + '"' + (l === state.level ? ' selected' : '') + '>打 ' + l + '</option>').join('');
+    buildMemoTable();
+    bind();
+    render();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>
